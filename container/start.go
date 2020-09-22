@@ -8,16 +8,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
 func Start(c *gin.Context) {
-	containerId := c.Request.URL.Query().Get("containerId")
-	err := cli.ContainerStart(context.Background(), containerId, types.ContainerStartOptions{})
+	containerID := c.Request.URL.Query().Get("containerId")
+	checkpointID := c.Request.URL.Query().Get("checkpointID")
+
+	cStartOpts := types.ContainerStartOptions{
+		CheckpointID: checkpointID,
+	}
+
+	err := cli.ContainerStart(context.Background(), containerID, cStartOpts)
 	if err != nil {
 		fmt.Println("start container failed")
-		c.JSON(200, gin.H{
-			"result": "failed",
-		})
+		ReportErr(c, err)
 		panic(err)
 	}
 	c.JSON(200, gin.H{
