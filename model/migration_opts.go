@@ -2,5 +2,6 @@ package model
 
 type MigrationOpts struct {
 	CheckpointOpts
-	DestIP string
+	DestIP   string
+	DestPort string
 }

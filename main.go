@@ -37,7 +37,9 @@ func main() {
 	//  create a container checkpoint
 	r.POST("/docker/checkpoint/create", container.CheckpointCreate)
 	// receive checkpoint and restore from it
-	r.POST("/docker/checkpoint/restore", migration.ReceiveCheckpointAndRestore)
+	r.POST("/docker/checkpoint/restore", migration.FetchCheckpointAndRestore)
+	// push checkpoint to destination
+	r.POST("/docker/checkpoint/push", migration.CheckpointPush)
 
 	r.Run(":6789") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

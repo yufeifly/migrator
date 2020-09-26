@@ -36,17 +36,19 @@ func MigrateRedis(c *gin.Context) {
 	containerName := c.Request.URL.Query().Get("container")
 	checkpointID := c.Request.URL.Query().Get("checkpointID")
 	destIP := c.Request.URL.Query().Get("destIP")
+	destPort := c.Request.URL.Query().Get("destPort")
 	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
 	if checkpointDir == "" {
 		checkpointDir = migration.DefaultChkPDirPrefix + container.GetContainerFullID(containerName) + "/" + checkpointID
 	}
 
+	// 1 send container create request
+
+	// 2 create a checkpoint
 	chOpts := model.CheckpointOpts{
 		CheckPointID:  checkpointID,
 		CheckPointDir: checkpointDir,
 	}
-
-	// 1 create a checkpoint
 	err := container.CreateCheckpoint(c, chOpts)
 	if err != nil {
 		fmt.Printf("CreateCheckpoint err: %v\n", err)
@@ -54,18 +56,19 @@ func MigrateRedis(c *gin.Context) {
 		panic(err)
 	}
 
-	// 2 push checkpoint to destination node
+	// 3 push checkpoint to destination node
 	MigOpts := model.MigrationOpts{
 		CheckpointOpts: chOpts,
 		DestIP:         destIP,
+		DestPort:       destPort,
 	}
-
 	err = migration.PushCheckpoint(MigOpts)
 	if err != nil {
 		fmt.Printf("Push Checkpoint err: %v\n", err)
 		container.ReportErr(c, err)
 		panic(err)
 	}
+	//
 
 	c.JSON(200, gin.H{
 		"result": "success",
