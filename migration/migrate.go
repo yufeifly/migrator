@@ -21,8 +21,13 @@ func CheckpointPush(c *gin.Context) {
 	destIP := c.Request.URL.Query().Get("destIP")
 	destPort := c.Request.URL.Query().Get("destPort")
 	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
+	containerJson, err := container.Inspect(containerName)
+	if err != nil {
+
+	}
 	if checkpointDir == "" {
-		checkpointDir = DefaultChkPDirPrefix + container.GetContainerFullID(containerName) + "/" + checkpointID
+		//checkpointDir = DefaultChkPDirPrefix + container.GetContainerFullID(containerName) + "/" + checkpointID
+		checkpointDir = DefaultChkPDirPrefix + containerJson.ID + "/" + checkpointID
 	}
 
 	MigOpts := model.MigrationOpts{
@@ -33,8 +38,7 @@ func CheckpointPush(c *gin.Context) {
 		DestIP:   destIP,
 		DestPort: destPort,
 	}
-	err := PushCheckpoint(MigOpts)
-
+	err = PushCheckpoint(MigOpts)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"result": "failed",

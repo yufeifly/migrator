@@ -16,6 +16,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	//cpDir := c.Request.URL.Query().Get("cpDir")
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
+	cID := c.PostForm("ContainerID")
 	// debug
 	//fmt.Printf("cpDir: %v, cpID: %v\n", cpDir, cpID)
 	// Multipart form
@@ -52,11 +53,11 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 			CheckpointID:  cpID,
 			CheckpointDir: cpDir,
 		},
-		ContainerID: containerID,
+		ContainerID: cID,
 	}
 	container.StartContainer(startOpts)
 
-	fmt.Printf("checkpointID: %v\n", cpID)
+	//fmt.Printf("checkpointID: %v\n", cpID)
 
 	c.JSON(200, gin.H{
 		"result": "success",

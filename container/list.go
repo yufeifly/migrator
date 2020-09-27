@@ -11,6 +11,7 @@ import (
 func List(c *gin.Context) {
 	header := "[container:List]"
 
+	// if all=true or all=1 then docker ps -a
 	var all bool
 	allStr := c.Request.URL.Query().Get("all")
 	if allStr == "true" {
@@ -19,9 +20,7 @@ func List(c *gin.Context) {
 		allInt, err := strconv.Atoi(allStr)
 		if err != nil {
 			fmt.Printf("%v, %v", header, err)
-			c.JSON(200, gin.H{
-				"result": "bad param",
-			})
+			ReportErr(c, err)
 		}
 		if allInt == 1 {
 			all = true
@@ -32,9 +31,7 @@ func List(c *gin.Context) {
 		All: all,
 	})
 	if err != nil {
-		c.JSON(200, gin.H{
-			"result": "failed",
-		})
+		ReportErr(c, err)
 		panic(err)
 	}
 
