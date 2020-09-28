@@ -103,4 +103,6 @@ func CreateContainer(opts model.CreateOpts) error {
 	}
 
 	fmt.Printf("Create container ID: %s\n", body.ID)
+
+	return err
 }

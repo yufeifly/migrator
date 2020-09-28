@@ -23,8 +23,10 @@ func CheckpointPush(c *gin.Context) {
 	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
 	containerJson, err := container.Inspect(containerName)
 	if err != nil {
-
+		fmt.Printf("CheckpointPush.Inspect err : %v\n", err)
+		container.ReportErr(c, err)
 	}
+	// get default dir to store checkpoint
 	if checkpointDir == "" {
 		//checkpointDir = DefaultChkPDirPrefix + container.GetContainerFullID(containerName) + "/" + checkpointID
 		checkpointDir = DefaultChkPDirPrefix + containerJson.ID + "/" + checkpointID
@@ -35,8 +37,9 @@ func CheckpointPush(c *gin.Context) {
 			CheckPointID:  checkpointID,
 			CheckPointDir: checkpointDir,
 		},
-		DestIP:   destIP,
-		DestPort: destPort,
+		DestIP:      destIP,
+		DestPort:    destPort,
+		ContainerID: containerJson.ID,
 	}
 	err = PushCheckpoint(MigOpts)
 	if err != nil {
@@ -60,10 +63,11 @@ func PushCheckpoint(migOpts model.MigrationOpts) error {
 
 	urlPost := "http://" + ip + ":" + port + "/docker/checkpoint/restore"
 	params := map[string]string{
+		"ContainerID":   migOpts.ContainerID,
 		"CheckPointID":  migOpts.CheckPointID,
 		"CheckPointDir": migOpts.CheckPointDir,
 	}
-	cpPath := migOpts.CheckPointDir
+	cpPath := migOpts.CheckPointDir + "/" + migOpts.CheckPointID
 
 	files, err := getFilesFromCheckpoint(cpPath)
 	if err != nil {
@@ -102,36 +106,6 @@ func PushCheckpoint(migOpts model.MigrationOpts) error {
 	//fmt.Println(body)
 
 	return nil
-}
-
-// getFilesFromCheckpoint get files from dir(pathname)
-func getFilesFromCheckpoint(pathname string) ([]string, error) {
-	var files []string
-	rd, err := ioutil.ReadDir(pathname)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return files, err
-	}
-	for _, fi := range rd {
-		if fi.IsDir() {
-			// ignore files in dir criu.work/restore-...
-			if restoreDir(fi.Name()) {
-				continue
-			}
-
-			adder, err := getFilesFromCheckpoint(pathname + "/" + fi.Name())
-			if err != nil {
-				return nil, err
-			}
-			for ind, val := range adder {
-				adder[ind] = fi.Name() + "/" + val
-			}
-			files = append(files, adder...)
-		} else {
-			files = append(files, fi.Name())
-		}
-	}
-	return files, nil
 }
 
 // newFileUploadRequest create a file upload request
@@ -174,6 +148,36 @@ func newFileUploadRequest(url string, cpPath string, paths []string, params map[
 	}
 	req.Header.Add("Content-Type", writer.FormDataContentType())
 	return req, err
+}
+
+// getFilesFromCheckpoint get files from dir(pathname)
+func getFilesFromCheckpoint(pathname string) ([]string, error) {
+	var files []string
+	rd, err := ioutil.ReadDir(pathname)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return files, err
+	}
+	for _, fi := range rd {
+		if fi.IsDir() {
+			// ignore files in dir criu.work/restore-...
+			if restoreDir(fi.Name()) {
+				continue
+			}
+
+			adder, err := getFilesFromCheckpoint(pathname + "/" + fi.Name())
+			if err != nil {
+				return nil, err
+			}
+			for ind, val := range adder {
+				adder[ind] = fi.Name() + "/" + val
+			}
+			files = append(files, adder...)
+		} else {
+			files = append(files, fi.Name())
+		}
+	}
+	return files, nil
 }
 
 // restoreDir check if path is dir or not

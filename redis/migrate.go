@@ -50,11 +50,16 @@ func MigrateRedis(c *gin.Context) {
 		DestIP:        destIP,
 	}
 
-	_, err = cli.SendContainerCreate(createOpts)
+	rawResp, err := cli.SendContainerCreate(createOpts)
 	if err != nil {
 		fmt.Printf("SendContainerCreate err: %v\n", err)
 		container.ReportErr(c, err)
 	}
+	var resp map[string]interface{}
+	json.Unmarshal(rawResp, &resp)
+	fmt.Printf("create result: %v\n", resp["containerId"])
+	containerID := resp["containerId"].(string)
+
 	// 2 create a checkpoint
 	chOpts := model.CheckpointOpts{
 		CheckPointID:  checkpointID,
@@ -69,6 +74,7 @@ func MigrateRedis(c *gin.Context) {
 
 	// 3 push checkpoint to destination node
 	MigOpts := model.MigrationOpts{
+		ContainerID:    containerID,
 		CheckpointOpts: chOpts,
 		DestIP:         destIP,
 		DestPort:       destPort,
@@ -80,7 +86,6 @@ func MigrateRedis(c *gin.Context) {
 		panic(err)
 	}
 	//
-
 	c.JSON(200, gin.H{
 		"result": "success",
 	})

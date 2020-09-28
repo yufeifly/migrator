@@ -14,7 +14,7 @@ func TestCli_SendContainerCreate(t *testing.T) {
 	fmt.Printf("cmd: %v\n", string(cmd))
 
 	opts := model.CreateOpts{
-		ContainerName: "bb21",
+		ContainerName: "bb22",
 		ImageName:     "busybox",
 		HostPort:      "",
 		ContainerPort: "",
@@ -25,6 +25,8 @@ func TestCli_SendContainerCreate(t *testing.T) {
 	if err != nil {
 		fmt.Println("err: ", err)
 	} else {
-		fmt.Printf("create result: %v\n", string(got))
+		var ans map[string]interface{}
+		json.Unmarshal(got, &ans)
+		fmt.Printf("create result: %v\n", ans["containerId"])
 	}
 }

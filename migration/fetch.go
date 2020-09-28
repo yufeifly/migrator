@@ -17,8 +17,9 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
 	cID := c.PostForm("ContainerID")
+	cpPath := cpDir + "/" + cpID // example: /tmp/cp1
 	// debug
-	//fmt.Printf("cpDir: %v, cpID: %v\n", cpDir, cpID)
+	fmt.Printf("cpPath: %v, cpID: %v\n", cpPath, cpID)
 	// Multipart form
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -28,7 +29,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	files := form.File["files"]
 
 	// create the dirs needed
-	err = os.MkdirAll(cpDir+"/criu.work", 0766)
+	err = os.MkdirAll(cpPath+"/criu.work", 0766)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -36,7 +37,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	for _, file := range files {
 		//fmt.Printf("file.filename: %v\n", file.Filename)
 		//filename := cpDir + "/test/" + filepath.Base(file.Filename)
-		filename := cpDir + "/" + file.Filename
+		filename := cpPath + "/" + file.Filename
 		//fmt.Printf("filename: %v\n", filename)
 		if err := c.SaveUploadedFile(file, filename); err != nil {
 			c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
@@ -44,8 +45,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 		}
 	}
 
-	//c.String(http.StatusOK, fmt.Sprintf("Uploaded successfully %d files.", len(files)))
-	// 启动容器
+	// start the container
 	// 1 check if container created
 	// 2 start the container
 	startOpts := model.StartOpts{
@@ -55,7 +55,10 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 		},
 		ContainerID: cID,
 	}
-	container.StartContainer(startOpts)
+	err = container.StartContainer(startOpts)
+	if err != nil {
+		fmt.Printf("fetch.startContainer err: %v\n", err)
+	}
 
 	//fmt.Printf("checkpointID: %v\n", cpID)
 
