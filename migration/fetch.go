@@ -61,7 +61,6 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	}
 	err = container.StartContainer(startOpts)
 	if err != nil {
-		fmt.Printf("fetch.startContainer err: %v\n", err)
 		logrus.Errorf("%s, start container err: %v", header, err)
 	}
 

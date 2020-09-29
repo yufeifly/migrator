@@ -3,18 +3,20 @@ package main
 import (
 	"github.com/yufeifly/proxyd/migration"
 	"github.com/yufeifly/proxyd/redis"
+	"github.com/yufeifly/proxyd/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yufeifly/proxyd/container"
 )
 
 func init() {
-
+	if utils.IsDebugEnabled() {
+		utils.EnableDebug()
+	}
 }
 
 func main() {
 	r := gin.Default()
-
 	// redis operations
 	// redis get func
 	r.GET("/redis/get", redis.Get)

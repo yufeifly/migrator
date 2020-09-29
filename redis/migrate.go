@@ -2,7 +2,7 @@ package redis
 
 import (
 	"encoding/json"
-	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/client"
 	"github.com/yufeifly/proxyd/model"

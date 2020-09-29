@@ -16,6 +16,14 @@ import (
 	"strings"
 )
 
+var logger = logrus.New()
+
+func init() {
+	if utils.IsDebugEnabled() {
+		logger.SetLevel(logrus.DebugLevel)
+	}
+}
+
 func CheckpointPush(c *gin.Context) {
 	header := "migration.CheckpointPush"
 
@@ -110,30 +118,30 @@ func newFileUploadRequest(url string, cpPath string, paths []string, params map[
 	writer := multipart.NewWriter(body)
 	for _, file := range paths {
 		fullPath := cpPath + "/" + file
-		logger := logrus.WithFields(logrus.Fields{
+		logEntry := logger.WithFields(logrus.Fields{
 			"full path": fullPath,
 		})
-		logger.Debug("checkpoint files")
+		logEntry.Debug("checkpoint files")
 
 		fileP, err := os.Open(fullPath)
 		if err != nil {
-			logger.Error("open checkpoint file failed")
+			logEntry.Error("open checkpoint file failed")
 			return nil, err
 		}
 
 		part, err := writer.CreateFormFile(UploadFileKey, file)
 		if err != nil {
-			logger.Error("create checkpoint file failed")
+			logEntry.Error("create checkpoint file failed")
 			return nil, err
 		}
 		_, err = io.Copy(part, fileP)
 		if err != nil {
-			logger.Error("copy file failed")
+			logEntry.Error("copy file failed")
 			return nil, err
 		}
 		err = fileP.Close()
 		if err != nil {
-			logger.Error("close file failed")
+			logEntry.Error("close file failed")
 			return nil, err
 		}
 	}
