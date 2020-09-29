@@ -2,7 +2,7 @@ package container
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 
 	"github.com/docker/docker/client"
 )
@@ -17,12 +17,6 @@ func init() {
 	var err error
 	cli, err = client.NewEnvClient()
 	if err != nil {
-		panic(err)
+		logrus.Panic(err)
 	}
-}
-
-func ReportErr(c *gin.Context, err error) {
-	c.JSON(200, gin.H{
-		"result": err,
-	})
 }

@@ -2,8 +2,9 @@ package dal
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/proxyd/cusErr"
 )
 
 var (
@@ -19,25 +20,27 @@ func init() {
 	})
 }
 
-func SetKV(key, val string) {
-	header := "[dal.SetKV]"
+func SetKV(key, val string) error {
 	err := rdb.Set(ctx, key, val, 0).Err()
 	if err != nil {
-		fmt.Printf("%v err: %v", header, err)
-		panic(err)
+		return err
 	}
+	return nil
 }
 
-func GetKV(key string) string {
-	header := "[dal.GetKV]"
+func GetKV(key string) (string, error) {
+	header := "dal.GetKV"
 	val, err := rdb.Get(ctx, key).Result()
 	if err == redis.Nil {
-		fmt.Printf("key (%v) does not exist\n", key)
+		return "", cusErr.ErrNotFound
 	} else if err != nil {
-		fmt.Printf("%v err: %v\n", header, err)
-		panic(err)
+		logrus.Errorf("%s, err: %v", header, err)
+		return "", err
 	} else {
-		fmt.Println(key, " : ", val)
+		logrus.WithFields(logrus.Fields{
+			"key":   key,
+			"value": val,
+		}).Info("the (key, value) pair")
 	}
-	return val
+	return val, nil
 }

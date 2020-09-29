@@ -3,8 +3,10 @@ package redis
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/client"
 	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/proxyd/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yufeifly/proxyd/container"
@@ -14,11 +16,11 @@ import (
 // MigrateRedis handler of migrating redis
 func MigrateRedis(c *gin.Context) {
 	// 获取请求参数
-	containerName := c.Request.URL.Query().Get("container")
-	checkpointID := c.Request.URL.Query().Get("checkpointID")
-	destIP := c.Request.URL.Query().Get("destIP")
-	destPort := c.Request.URL.Query().Get("destPort")
-	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
+	containerName := c.Query("container")
+	checkpointID := c.Query("checkpointID")
+	destIP := c.Query("destIP")
+	destPort := c.Query("destPort")
+	checkpointDir := c.Query("checkpointDir")
 
 	migrateOpts := model.MigrateOpts{
 		Container:     containerName,
@@ -29,8 +31,8 @@ func MigrateRedis(c *gin.Context) {
 	}
 	err := TryMigrate(migrateOpts)
 	if err != nil {
-		container.ReportErr(c, err)
-		panic(err)
+		utils.ReportErr(c, err)
+		logrus.Panic(err)
 	}
 	//
 	c.JSON(200, gin.H{
@@ -40,6 +42,7 @@ func MigrateRedis(c *gin.Context) {
 
 // TryMigrate migrate redis service
 func TryMigrate(migrateOpts model.MigrateOpts) error {
+	header := "redis.TryMigrate"
 	// get params
 	Container := migrateOpts.Container // to identify container in source node
 	CheckpointID := migrateOpts.CheckpointID
@@ -50,28 +53,32 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 	// get all infos of a container
 	containerJson, err := container.Inspect(Container)
 	if err != nil {
-		fmt.Printf("container.Inspect err: %v\n", err)
+		logrus.Errorf("%s, inspect err: %v", header, err)
 		return err
 	}
 
 	// get image name of the container to be migrated
-	// imageName, err := container.GetImageByImageID(containerJson.Image)
 	imageName := containerJson.Config.Image
 
 	// make the default checkpoint dir
 	if CheckpointDir == "" {
-		//checkpointDir = migration.DefaultChkPDirPrefix + container.GetContainerFullID(containerName) + "/" + checkpointID
 		CheckpointDir = migration.DefaultChkPDirPrefix + containerJson.ID
 	}
 
 	// 1 send container create request
 	// 1.1 get container's cmd in source node
-	cmd, err := json.Marshal(containerJson.Config.Cmd)
-	if err != nil {
-
+	var CmdStr string
+	if containerJson.Config.Cmd != nil {
+		cmd, err := json.Marshal(containerJson.Config.Cmd)
+		if err != nil {
+			logrus.Errorf("%s, marshal cmd err: %v", header, err)
+			return err
+		}
+		CmdStr = string(cmd)
+		logrus.WithFields(logrus.Fields{
+			"cmd": CmdStr,
+		}).Debug("command to send")
 	}
-	cmdStr := string(cmd)
-	fmt.Printf("sender cmd: %v\n", cmdStr)
 
 	// 1.2 get container's port map in source node
 	var PortBindingsStr string
@@ -82,8 +89,10 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 			return err
 		}
 		PortBindingsStr = string(pbJson)
+		logrus.WithFields(logrus.Fields{
+			"PortBindings": PortBindingsStr,
+		}).Debug("PortBindings")
 	}
-	fmt.Printf("portBinding: %v\n", PortBindingsStr)
 
 	var ExposedPortsStr string
 	exposedPorts := containerJson.Config.ExposedPorts
@@ -93,19 +102,21 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 			return err
 		}
 		ExposedPortsStr = string(epJson)
+		logrus.WithFields(logrus.Fields{
+			"ExposedPorts": ExposedPortsStr,
+		}).Debug("ExposedPorts")
 	}
-	fmt.Printf("exposedPorts: %v\n", ExposedPortsStr)
 
 	cli := client.Cli{}
 	createReqOpts := model.CreateReqOpts{
 		CreateOpts: model.CreateOpts{
 			ContainerName: "", // todo give dest container a nice name,empty string means a random name
 			ImageName:     imageName,
-			HostPort:      "",
-			ContainerPort: "",
+			HostPort:      "", // empty string
+			ContainerPort: "", // empty string
 			PortBindings:  PortBindingsStr,
 			ExposedPorts:  ExposedPortsStr,
-			Cmd:           cmdStr,
+			Cmd:           CmdStr,
 		},
 		DestIP:   DestIP,
 		DestPort: DestPort,
@@ -113,17 +124,19 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 
 	rawResp, err := cli.SendContainerCreate(createReqOpts)
 	if err != nil {
-		fmt.Printf("SendContainerCreate err: %v\n", err)
+		logrus.Errorf("%s, SendContainerCreate err: %v", header, err)
 		return err
 	}
 	var resp map[string]interface{}
 	err = json.Unmarshal(rawResp, &resp)
 	if err != nil {
-		fmt.Printf("Unmarshal err: %v\n", err)
+		logrus.Errorf("%s, Unmarshal response err: %v", header, err)
 		return err
 	}
 	containerID := resp["containerId"].(string) // the containerID of the created container in destination node
-	fmt.Printf("create result: %v\n", containerID)
+	logrus.WithFields(logrus.Fields{
+		"ContainerID": containerID,
+	}).Debug("container on dest node created")
 
 	// 2 create a checkpoint
 	chOpts := model.CheckpointOpts{
@@ -131,10 +144,10 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		CheckPointID:  CheckpointID,
 		CheckPointDir: CheckpointDir,
 	}
-	fmt.Printf("checkpoint opts : %v\n", chOpts)
+
 	err = container.CreateCheckpoint(chOpts)
 	if err != nil {
-		fmt.Printf("CreateCheckpoint err: %v\n", err)
+		logrus.Errorf("%s, CreateCheckpoint err: %v", header, err)
 		return err
 	}
 
@@ -147,7 +160,7 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 	}
 	err = migration.PushCheckpoint(PushOpts)
 	if err != nil {
-		fmt.Printf("Push Checkpoint err: %v\n", err)
+		logrus.Errorf("%s, Push Checkpoint err: %v", header, err)
 		return err
 	}
 	return nil

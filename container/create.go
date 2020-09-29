@@ -2,9 +2,10 @@ package container
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/docker/go-connections/nat"
+	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/proxyd/utils"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,7 @@ import (
 
 // Create handler for creating a container
 func Create(c *gin.Context) {
+	header := "container.Create"
 	//containerName := c.Request.URL.Query().Get("containerName")
 	//imageName := c.Request.URL.Query().Get("imageName")
 	//hostPort := c.Request.URL.Query().Get("hostPort")
@@ -32,8 +34,8 @@ func Create(c *gin.Context) {
 		}
 		ExposedPortsSli, err := json.Marshal(exposedPorts)
 		if err != nil {
-			ReportErr(c, err)
-			panic(err)
+			utils.ReportErr(c, err)
+			logrus.Panic(err)
 		}
 		ExposedPorts = string(ExposedPortsSli)
 
@@ -45,8 +47,8 @@ func Create(c *gin.Context) {
 		}
 		PortBindingsSli, err := json.Marshal(portBindings)
 		if err != nil {
-			ReportErr(c, err)
-			panic(err)
+			utils.ReportErr(c, err)
+			logrus.Panic(err)
 		}
 		PortBindings = string(PortBindingsSli)
 	}
@@ -62,9 +64,9 @@ func Create(c *gin.Context) {
 	}
 	body, err := CreateContainer(createOpts)
 	if err != nil {
-		ReportErr(c, err)
-		fmt.Printf("CreateContainer err: %v\n", err)
-		panic(err)
+		utils.ReportErr(c, err)
+		logrus.Errorf("%s, CreateContainer err: %v", header, err)
+		logrus.Panic(err)
 	}
 	c.JSON(200, gin.H{
 		"result":      "success",
@@ -74,24 +76,27 @@ func Create(c *gin.Context) {
 
 // CreateContainer create a container
 func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBody, error) {
-	// unmarshal cmd
-	var cmd []string
-	err := json.Unmarshal([]byte(opts.Cmd), &cmd)
-	if err != nil {
-		fmt.Printf("unmarshal err: %v\n", err)
-		return container.ContainerCreateCreatedBody{}, err
-	}
+	header := "container.CreateContainer"
 
 	config := &container.Config{
 		Image: opts.ImageName,
-		Cmd:   cmd,
+	}
+	// unmarshal cmd
+	if opts.Cmd != "" {
+		var cmd []string
+		err := json.Unmarshal([]byte(opts.Cmd), &cmd)
+		if err != nil {
+			logrus.Errorf("%s, unmarshal cmd err: %v", header, err)
+			return container.ContainerCreateCreatedBody{}, err
+		}
+		config.Cmd = cmd
 	}
 
 	if opts.ExposedPorts != "" {
 		exposedPorts := nat.PortSet{}
-		err = json.Unmarshal([]byte(opts.ExposedPorts), &exposedPorts)
+		err := json.Unmarshal([]byte(opts.ExposedPorts), &exposedPorts)
 		if err != nil {
-			fmt.Printf("unmarshal err: %v\n", err)
+			logrus.Errorf("%s, unmarshal ExposedPorts err: %v", header, err)
 			return container.ContainerCreateCreatedBody{}, err
 		}
 		config.ExposedPorts = exposedPorts
@@ -100,9 +105,9 @@ func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBod
 	hostConfig := &container.HostConfig{}
 	if opts.PortBindings != "" {
 		portBindings := nat.PortMap{}
-		err = json.Unmarshal([]byte(opts.PortBindings), &portBindings)
+		err := json.Unmarshal([]byte(opts.PortBindings), &portBindings)
 		if err != nil {
-			fmt.Printf("unmarshal err: %v\n", err)
+			logrus.Errorf("%s, unmarshal PortBindings err: %v", header, err)
 			return container.ContainerCreateCreatedBody{}, err
 		}
 		hostConfig.PortBindings = portBindings
@@ -113,7 +118,9 @@ func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBod
 		return container.ContainerCreateCreatedBody{}, err
 	}
 
-	fmt.Printf("Create container ID: %s\n", body.ID)
+	logrus.WithFields(logrus.Fields{
+		"ContainerID": body.ID,
+	}).Info("container created")
 
 	return body, err
 }

@@ -3,7 +3,9 @@ package container
 import (
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/proxyd/utils"
 )
 
 // CheckpointCreate handler for create a checkpoint for a container
@@ -18,8 +20,8 @@ func CheckpointCreate(c *gin.Context) {
 		CheckPointDir: checkpointDIR,
 	}
 	if err := CreateCheckpoint(cpOpts); err != nil {
-		ReportErr(c, err)
-		panic(err)
+		utils.ReportErr(c, err)
+		logrus.Panic(err)
 	}
 
 	c.JSON(200, gin.H{

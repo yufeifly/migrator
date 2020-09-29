@@ -1,15 +1,17 @@
 package container
 
 import (
-	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/proxyd/utils"
 	"strconv"
 
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
 )
 
+// List handler for listing container(s)
 func List(c *gin.Context) {
-	header := "[container:List]"
+	header := "container.List"
 
 	// if all=true or all=1 then docker ps -a
 	var all bool
@@ -19,8 +21,8 @@ func List(c *gin.Context) {
 	} else {
 		allInt, err := strconv.Atoi(allStr)
 		if err != nil {
-			fmt.Printf("%v, %v", header, err)
-			ReportErr(c, err)
+			logrus.Errorf("%s, err: %v", header, err)
+			utils.ReportErr(c, err)
 		}
 		if allInt == 1 {
 			all = true
@@ -31,13 +33,16 @@ func List(c *gin.Context) {
 		All: all,
 	})
 	if err != nil {
-		ReportErr(c, err)
-		panic(err)
+		utils.ReportErr(c, err)
+		logrus.Panic(err)
 	}
 
 	list := make(gin.H)
 	for _, container := range containers {
-		fmt.Printf("%s %s\n", container.ID[:10], container.Image)
+		logrus.WithFields(logrus.Fields{
+			"ContainerID": container.ID[:10],
+			"Image":       container.Image,
+		}).Info("List infos")
 		list[container.ID[:10]] = container.Image
 	}
 

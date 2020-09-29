@@ -2,7 +2,8 @@ package migration
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/proxyd/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/yufeifly/proxyd/container"
@@ -16,19 +17,22 @@ import (
 )
 
 func CheckpointPush(c *gin.Context) {
+	header := "migration.CheckpointPush"
+
 	containerName := c.Request.URL.Query().Get("container")
 	checkpointID := c.Request.URL.Query().Get("checkpointID")
 	destIP := c.Request.URL.Query().Get("destIP")
 	destPort := c.Request.URL.Query().Get("destPort")
 	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
+
 	containerJson, err := container.Inspect(containerName)
 	if err != nil {
-		fmt.Printf("CheckpointPush.Inspect err : %v\n", err)
-		container.ReportErr(c, err)
+		logrus.Errorf("%s, inspect container err: %v", header, err)
+		utils.ReportErr(c, err)
+		logrus.Panic(err)
 	}
 	// get default dir to store checkpoint
 	if checkpointDir == "" {
-		//checkpointDir = DefaultChkPDirPrefix + container.GetContainerFullID(containerName) + "/" + checkpointID
 		checkpointDir = DefaultChkPDirPrefix + containerJson.ID + "/" + checkpointID
 	}
 
@@ -43,10 +47,8 @@ func CheckpointPush(c *gin.Context) {
 	}
 	err = PushCheckpoint(PushOpts)
 	if err != nil {
-		c.JSON(200, gin.H{
-			"result": "failed",
-		})
-		panic(err)
+		utils.ReportErr(c, err)
+		logrus.Panic(err)
 	}
 
 	c.JSON(200, gin.H{
@@ -56,8 +58,8 @@ func CheckpointPush(c *gin.Context) {
 
 // PushCheckpoint push checkpoint to destination and deliver restore request
 func PushCheckpoint(migOpts model.PushOpts) error {
-	// 这里应该与目的端有一个交互，以便知道目的端是否真实接收到检查点
-	// 这里应该作为文件传输的客户端
+	header := "migration.PushCheckpoint"
+
 	ip := migOpts.DestIP
 	port := migOpts.DestPort
 
@@ -71,79 +73,90 @@ func PushCheckpoint(migOpts model.PushOpts) error {
 
 	files, err := getFilesFromCheckpoint(cpPath)
 	if err != nil {
-		fmt.Printf("PushCheckpoint err: %v\n", err)
+		logrus.Errorf("%s, getFilesFromCheckpoint err: %v", header, err)
 		return err
 	}
-
-	//
-	//for _, val := range files {
-	//	fmt.Printf("filename: %v\n", val)
-	//}
-	//
 
 	req, err := newFileUploadRequest(urlPost, cpPath, files, params)
 	if err != nil {
-		fmt.Printf("error to new upload file request:%s\n", err.Error())
+		logrus.Errorf("%s, new file upload request err: %v", header, err)
 		return err
 	}
-	//fmt.Println(req)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("error to request to the server:%s\n", err.Error())
+		logrus.Errorf("%s, do request to server err: %v", header, err)
 		return err
 	}
 
 	body := &bytes.Buffer{}
 	_, err = body.ReadFrom(resp.Body)
 	if err != nil {
-		fmt.Printf("error to request to the server:%s\n", err.Error())
+		logrus.Errorf("%s, read response body err: %v", header, err)
 		return err
 	}
 
 	defer resp.Body.Close()
-	//fmt.Println(body)
 
 	return nil
 }
 
 // newFileUploadRequest create a file upload request
 func newFileUploadRequest(url string, cpPath string, paths []string, params map[string]string) (*http.Request, error) {
+	header := "migration.newFileUploadRequest"
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	for _, file := range paths {
 		fullPath := cpPath + "/" + file
-		// debug
-		fmt.Printf("fullpath: %v\n", fullPath)
+		logger := logrus.WithFields(logrus.Fields{
+			"full path": fullPath,
+		})
+		logger.Debug("checkpoint files")
+
 		fileP, err := os.Open(fullPath)
 		if err != nil {
+			logger.Error("open checkpoint file failed")
 			return nil, err
 		}
 
 		part, err := writer.CreateFormFile(UploadFileKey, file)
-
 		if err != nil {
+			logger.Error("create checkpoint file failed")
 			return nil, err
 		}
 		_, err = io.Copy(part, fileP)
-		fileP.Close()
+		if err != nil {
+			logger.Error("copy file failed")
+			return nil, err
+		}
+		err = fileP.Close()
+		if err != nil {
+			logger.Error("close file failed")
+			return nil, err
+		}
 	}
 
 	// 其他参数列表写入 body
 	for k, v := range params {
 		if err := writer.WriteField(k, v); err != nil {
+			logrus.WithFields(logrus.Fields{
+				"key":   k,
+				"value": v,
+			}).Error("write param to request failed")
 			return nil, err
 		}
 	}
 
 	if err := writer.Close(); err != nil {
+		logrus.Error("%s, close writer err: %v", header, err)
 		return nil, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, url, body)
 	if err != nil {
+		logrus.Error("%s, new http request err: %v", header, err)
 		return nil, err
 	}
 	req.Header.Add("Content-Type", writer.FormDataContentType())
@@ -152,11 +165,13 @@ func newFileUploadRequest(url string, cpPath string, paths []string, params map[
 
 // getFilesFromCheckpoint get files from dir(pathname)
 func getFilesFromCheckpoint(pathname string) ([]string, error) {
+	header := "migration.getFilesFromCheckpoint"
+
 	var files []string
 	rd, err := ioutil.ReadDir(pathname)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return files, err
+		logrus.Error("%s, read dir err: %v", header, err)
+		return nil, err
 	}
 	for _, fi := range rd {
 		if fi.IsDir() {
@@ -167,6 +182,7 @@ func getFilesFromCheckpoint(pathname string) ([]string, error) {
 
 			adder, err := getFilesFromCheckpoint(pathname + "/" + fi.Name())
 			if err != nil {
+				logrus.Error("%s, recursively getFilesFromCheckpoint err: %v", header, err)
 				return nil, err
 			}
 			for ind, val := range adder {

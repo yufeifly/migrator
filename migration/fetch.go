@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/container"
 	"github.com/yufeifly/proxyd/model"
 	"net/http"
@@ -12,36 +13,39 @@ import (
 
 // ReceiveCheckpointAndRestore get checkpoint from source node and restore from it
 func FetchCheckpointAndRestore(c *gin.Context) {
-	// 文件传输的服务器端
-	//cpDir := c.Request.URL.Query().Get("cpDir")
+	header := "migration.FetchCheckpointAndRestore"
+
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
 	cID := c.PostForm("ContainerID")
 	cpPath := cpDir + "/" + cpID // example: /tmp/cp1
-	// debug
-	fmt.Printf("cpPath: %v, cpID: %v\n", cpPath, cpID)
+
+	logrus.WithFields(logrus.Fields{
+		"checkpoint path": cpPath,
+		"checkpointID":    cpID,
+	}).Debug("the checkpoint path and ID received")
 	// Multipart form
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
-		return
+		logrus.Errorf("%s, get form err: %v", header, err)
+		logrus.Panic(err)
 	}
 	files := form.File["files"]
 
 	// create the dirs needed
 	err = os.MkdirAll(cpPath+"/criu.work", 0766)
 	if err != nil {
-		fmt.Println(err)
+		logrus.Errorf("%s, make directory err: %v", header, err)
+		logrus.Panic(err)
 	}
 
 	for _, file := range files {
-		//fmt.Printf("file.filename: %v\n", file.Filename)
-		//filename := cpDir + "/test/" + filepath.Base(file.Filename)
 		filename := cpPath + "/" + file.Filename
-		//fmt.Printf("filename: %v\n", filename)
 		if err := c.SaveUploadedFile(file, filename); err != nil {
-			c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
-			return
+			c.String(http.StatusBadRequest, fmt.Sprintf("save uploaded file err: %s", err.Error()))
+			logrus.Errorf("%s, save uploaded file err: %v", header, err)
+			logrus.Panic(err)
 		}
 	}
 
@@ -58,9 +62,8 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	err = container.StartContainer(startOpts)
 	if err != nil {
 		fmt.Printf("fetch.startContainer err: %v\n", err)
+		logrus.Errorf("%s, start container err: %v", header, err)
 	}
-
-	//fmt.Printf("checkpointID: %v\n", cpID)
 
 	c.JSON(200, gin.H{
 		"result": "success",

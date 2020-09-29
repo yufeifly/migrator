@@ -2,8 +2,9 @@ package container
 
 import (
 	"context"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/proxyd/utils"
 
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
@@ -25,8 +26,8 @@ func Start(c *gin.Context) {
 
 	err := StartContainer(startOpts)
 	if err != nil {
-		ReportErr(c, err)
-		panic(err)
+		utils.ReportErr(c, err)
+		logrus.Panic(err)
 	}
 	c.JSON(200, gin.H{
 		"result": "success",
@@ -35,9 +36,10 @@ func Start(c *gin.Context) {
 
 // StartContainer start a container with opts
 func StartContainer(startOpts model.StartOpts) error {
+	header := "container.StartContainer"
 	err := cli.ContainerStart(context.Background(), startOpts.ContainerID, startOpts.CStartOpts)
 	if err != nil {
-		fmt.Println("start container failed")
+		logrus.Errorf("%s, start container failed, err: %v", header, err)
 		return err
 	}
 	return nil

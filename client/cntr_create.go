@@ -2,13 +2,14 @@ package client
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/model"
 	"mime/multipart"
 	"net/http"
 )
 
 func (c *Cli) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
+	header := "client.SendContainerCreate"
 	params := map[string]string{
 		"ContainerName": opts.ContainerName,
 		"ImageName":     opts.ImageName,
@@ -19,24 +20,26 @@ func (c *Cli) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
 		"Cmd":           opts.Cmd,
 	}
 	destUrl := "http://" + opts.DestIP + ":" + opts.DestPort + "/docker/create"
-	fmt.Printf("SendContainerCreate dest Url: %v\n", destUrl)
+	logrus.WithFields(logrus.Fields{
+		"DestUrl": destUrl,
+	}).Info(header)
 
 	req, err := NewCreateRequest(destUrl, params)
 	if err != nil {
-		fmt.Printf("SendContainerCreate error to new upload file request: %v\n", err.Error())
+		logrus.Errorf("%s: NewCreateRequest err %v", header, err)
 		return nil, err
 	}
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("SendContainerCreate error to get response: %v\n", err.Error())
+		logrus.Errorf("%s: get response err %v", header, err)
 		return nil, err
 	}
 
 	body := &bytes.Buffer{}
 	_, err = body.ReadFrom(resp.Body)
 	if err != nil {
-		fmt.Printf("SendContainerCreate error to read from response.body: %v\n", err.Error())
+		logrus.Errorf("%s: read from response body err %v", header, err)
 		return nil, err
 	}
 

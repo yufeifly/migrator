@@ -13,13 +13,16 @@ func TestCli_SendContainerCreate(t *testing.T) {
 	cmd, err := json.Marshal(&cmdSlice)
 	fmt.Printf("cmd: %v\n", string(cmd))
 
-	opts := model.CreateOpts{
-		ContainerName: "bb22",
-		ImageName:     "busybox",
-		HostPort:      "",
-		ContainerPort: "",
-		Cmd:           string(cmd),
-		DestIP:        "http://127.0.0.1:6789/docker/create",
+	opts := model.CreateReqOpts{
+		CreateOpts: model.CreateOpts{
+			ContainerName: "bb22",
+			ImageName:     "busybox",
+			HostPort:      "",
+			ContainerPort: "",
+			Cmd:           string(cmd),
+		},
+		DestIP:   "127.0.0.1:6789",
+		DestPort: "6789",
 	}
 	got, err := c.SendContainerCreate(opts)
 	if err != nil {
