@@ -14,10 +14,7 @@ import (
 // Create handler for creating a container
 func Create(c *gin.Context) {
 	header := "container.Create"
-	//containerName := c.Request.URL.Query().Get("containerName")
-	//imageName := c.Request.URL.Query().Get("imageName")
-	//hostPort := c.Request.URL.Query().Get("hostPort")
-	//containerPort := c.Request.URL.Query().Get("containerPort")
+
 	ContainerName := c.PostForm("ContainerName")
 	ImageName := c.PostForm("ImageName")
 	HostPort := c.PostForm("HostPort")

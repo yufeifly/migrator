@@ -12,9 +12,9 @@ import (
 
 // Start ContainerStart handler
 func Start(c *gin.Context) {
-	containerID := c.Request.URL.Query().Get("containerId")
-	checkpointID := c.Request.URL.Query().Get("checkpointID")
-	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
+	containerID := c.Query("containerId")
+	checkpointID := c.Query("checkpointID")
+	checkpointDir := c.Query("checkpointDir")
 
 	startOpts := model.StartOpts{
 		CStartOpts: types.ContainerStartOptions{

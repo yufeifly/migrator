@@ -10,9 +10,9 @@ import (
 
 // CheckpointCreate handler for create a checkpoint for a container
 func CheckpointCreate(c *gin.Context) {
-	container := c.Request.URL.Query().Get("container")
-	checkpointID := c.Request.URL.Query().Get("checkpointID")
-	checkpointDIR := c.Request.URL.Query().Get("checkpointDIR")
+	container := c.Query("container")
+	checkpointID := c.Query("checkpointID")
+	checkpointDIR := c.Query("checkpointDIR")
 
 	cpOpts := model.CheckpointOpts{
 		Container:     container,
@@ -31,14 +31,16 @@ func CheckpointCreate(c *gin.Context) {
 
 //CreateCheckpoint create a checkpoint for a container
 func CreateCheckpoint(checkpointOpts model.CheckpointOpts) error {
-
+	header := "container.CreateCheckpoint"
 	chOpts := types.CheckpointCreateOptions{
 		CheckpointID:  checkpointOpts.CheckPointID,
 		CheckpointDir: checkpointOpts.CheckPointDir,
-		Exit:          true,
+		Exit:          true, // todo this should be set by user
 	}
 
 	err := cli.CheckpointCreate(ctx, checkpointOpts.Container, chOpts)
-
+	if err != nil {
+		logrus.Errorf("%s, CheckpointCreate err: %v", header, err)
+	}
 	return err
 }

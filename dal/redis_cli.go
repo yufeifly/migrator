@@ -25,6 +25,10 @@ func SetKV(key, val string) error {
 	if err != nil {
 		return err
 	}
+	logrus.WithFields(logrus.Fields{
+		"key":   key,
+		"value": val,
+	}).Info("pair set")
 	return nil
 }
 

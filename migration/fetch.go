@@ -50,7 +50,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	}
 
 	// start the container
-	// 1 check if container created
+	// 1 todo check if container created
 	// 2 start the container
 	startOpts := model.StartOpts{
 		CStartOpts: types.ContainerStartOptions{

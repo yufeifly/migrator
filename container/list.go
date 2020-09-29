@@ -3,7 +3,6 @@ package container
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/proxyd/utils"
-	"strconv"
 
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
@@ -15,18 +14,9 @@ func List(c *gin.Context) {
 
 	// if all=true or all=1 then docker ps -a
 	var all bool
-	allStr := c.Request.URL.Query().Get("all")
-	if allStr == "true" {
+	allStr := c.Query("all")
+	if allStr == "true" || allStr == "1" {
 		all = true
-	} else {
-		allInt, err := strconv.Atoi(allStr)
-		if err != nil {
-			logrus.Errorf("%s, err: %v", header, err)
-			utils.ReportErr(c, err)
-		}
-		if allInt == 1 {
-			all = true
-		}
 	}
 
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
@@ -42,7 +32,7 @@ func List(c *gin.Context) {
 		logrus.WithFields(logrus.Fields{
 			"ContainerID": container.ID[:10],
 			"Image":       container.Image,
-		}).Info("List infos")
+		}).Infof("%s, List infos", header)
 		list[container.ID[:10]] = container.Image
 	}
 

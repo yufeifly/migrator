@@ -9,17 +9,17 @@ import (
 
 // stop a container
 func Stop(c *gin.Context) {
-	containerID := c.Request.URL.Query().Get("containerID")
+	ContainerID := c.Query("ContainerID")
 	timeout := time.Second * 10
 
-	err := cli.ContainerStop(ctx, containerID, &timeout)
+	err := cli.ContainerStop(ctx, ContainerID, &timeout)
 	if err != nil {
 		utils.ReportErr(c, err)
 		panic(err)
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"ContainerID": containerID,
+		"ContainerID": ContainerID,
 	}).Info("the container has been stopped")
 
 	c.JSON(200, gin.H{
