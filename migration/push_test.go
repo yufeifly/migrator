@@ -7,7 +7,7 @@ import (
 )
 
 func TestPushCheckpoint(t *testing.T) {
-	MigOpts := model.MigrationOpts{
+	PushOpts := model.PushOpts{
 		CheckpointOpts: model.CheckpointOpts{
 			CheckPointID:  "redis-cp",
 			CheckPointDir: "/tmp",
@@ -16,7 +16,7 @@ func TestPushCheckpoint(t *testing.T) {
 		DestPort:    "6789",
 		ContainerID: "85ea0420bb58",
 	}
-	err := PushCheckpoint(MigOpts)
+	err := PushCheckpoint(PushOpts)
 	if err != nil {
 		fmt.Println("err: ", err)
 	}

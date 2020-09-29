@@ -6,8 +6,18 @@ import (
 	"github.com/yufeifly/proxyd/model"
 )
 
+// CheckpointCreate handler for create a checkpoint for a container
 func CheckpointCreate(c *gin.Context) {
-	if err := CreateCheckpoint(c, model.CheckpointOpts{}); err != nil {
+	container := c.Request.URL.Query().Get("container")
+	checkpointID := c.Request.URL.Query().Get("checkpointID")
+	checkpointDIR := c.Request.URL.Query().Get("checkpointDIR")
+
+	cpOpts := model.CheckpointOpts{
+		Container:     container,
+		CheckPointID:  checkpointID,
+		CheckPointDir: checkpointDIR,
+	}
+	if err := CreateCheckpoint(cpOpts); err != nil {
 		ReportErr(c, err)
 		panic(err)
 	}
@@ -17,17 +27,16 @@ func CheckpointCreate(c *gin.Context) {
 	})
 }
 
-func CreateCheckpoint(c *gin.Context, checkpointOpts model.CheckpointOpts) error {
-	container := c.Request.URL.Query().Get("container")
-	checkpointID := c.Request.URL.Query().Get("checkpointID")
+//CreateCheckpoint create a checkpoint for a container
+func CreateCheckpoint(checkpointOpts model.CheckpointOpts) error {
 
 	chOpts := types.CheckpointCreateOptions{
-		CheckpointID:  checkpointID,
+		CheckpointID:  checkpointOpts.CheckPointID,
 		CheckpointDir: checkpointOpts.CheckPointDir,
 		Exit:          true,
 	}
 
-	err := cli.CheckpointCreate(ctx, container, chOpts)
+	err := cli.CheckpointCreate(ctx, checkpointOpts.Container, chOpts)
 
 	return err
 }

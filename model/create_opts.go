@@ -6,5 +6,5 @@ type CreateOpts struct {
 	HostPort      string
 	ContainerPort string
 	Cmd           string
-	DestIP        string
+	//DestIP        string // for sending create request
 }

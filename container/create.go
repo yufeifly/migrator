@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Create handler for creating a container
 func Create(c *gin.Context) {
 	//containerName := c.Request.URL.Query().Get("containerName")
 	//imageName := c.Request.URL.Query().Get("imageName")
@@ -24,50 +25,27 @@ func Create(c *gin.Context) {
 	//fmt.Printf("containerName: %v\n", containerName)
 	//fmt.Printf("cmdParam: %v\n", cmdParam)
 
-	var cmd []string
-	err := json.Unmarshal([]byte(cmdParam), &cmd)
-	if err != nil {
-		fmt.Printf("unmarshal err: %v\n", err)
-		ReportErr(c, err)
-		panic(err)
+	createOpts := model.CreateOpts{
+		ContainerName: containerName,
+		ImageName:     imageName,
+		HostPort:      hostPort,
+		ContainerPort: containerPort,
+		Cmd:           cmdParam,
 	}
-
-	config := &container.Config{
-		Image: imageName,
-		Cmd:   cmd,
-	}
-
-	hostConfig := &container.HostConfig{}
-
-	if hostPort != "" && containerPort != "" {
-		openPort, _ := nat.NewPort("tcp", containerPort)
-		config.ExposedPorts = nat.PortSet{
-			openPort: struct{}{}, //docker容器对外开放的端口
-		}
-
-		hostConfig.PortBindings = nat.PortMap{
-			openPort: []nat.PortBinding{nat.PortBinding{
-				HostIP:   "0.0.0.0", //docker容器映射的宿主机的ip
-				HostPort: hostPort,  //docker 容器映射到宿主机的端口
-			}},
-		}
-	}
-
-	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, containerName)
+	body, err := CreateContainer(createOpts)
 	if err != nil {
 		ReportErr(c, err)
+		fmt.Printf("CreateContainer err: %v\n", err)
 		panic(err)
 	}
-
-	fmt.Printf("Create container ID: %s\n", body.ID)
-
 	c.JSON(200, gin.H{
 		"result":      "success",
 		"containerId": body.ID,
 	})
 }
 
-func CreateContainer(opts model.CreateOpts) error {
+// CreateContainer create a container
+func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBody, error) {
 
 	var cmd []string
 	err := json.Unmarshal([]byte(opts.Cmd), &cmd)
@@ -104,5 +82,5 @@ func CreateContainer(opts model.CreateOpts) error {
 
 	fmt.Printf("Create container ID: %s\n", body.ID)
 
-	return err
+	return body, err
 }

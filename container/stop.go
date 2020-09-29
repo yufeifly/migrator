@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// stop a container
 func Stop(c *gin.Context) {
 	containerID := c.Request.URL.Query().Get("containerId")
 	timeout := time.Second * 10

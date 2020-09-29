@@ -8,31 +8,33 @@ import (
 	"net/http"
 )
 
-func (c *Cli) SendContainerCreate(opts model.CreateOpts) ([]byte, error) {
+func (c *Cli) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
 	params := map[string]string{
-		"containerName": opts.ContainerName,
+		"containerName": opts.ContainerName + "2",
 		"imageName":     opts.ImageName,
 		"hostPort":      opts.HostPort,
 		"containerPort": opts.ContainerPort,
 		"cmd":           opts.Cmd,
 	}
+	destUrl := "http://" + opts.DestIP + ":" + opts.DestPort + "/docker/create"
+	fmt.Printf("SendContainerCreate dest Url: %v\n", destUrl)
 
-	req, err := NewCreateRequest(opts.DestIP, params)
+	req, err := NewCreateRequest(destUrl, params)
 	if err != nil {
-		fmt.Printf("error to new upload file request:%s\n", err.Error())
+		fmt.Printf("SendContainerCreate error to new upload file request: %v\n", err.Error())
 		return nil, err
 	}
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("error to request to the server:%s\n", err.Error())
+		fmt.Printf("SendContainerCreate error to get response: %v\n", err.Error())
 		return nil, err
 	}
 
 	body := &bytes.Buffer{}
 	_, err = body.ReadFrom(resp.Body)
 	if err != nil {
-		fmt.Printf("error to request to the server:%s\n", err.Error())
+		fmt.Printf("SendContainerCreate error to read from response.body: %v\n", err.Error())
 		return nil, err
 	}
 

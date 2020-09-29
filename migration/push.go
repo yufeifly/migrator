@@ -32,7 +32,7 @@ func CheckpointPush(c *gin.Context) {
 		checkpointDir = DefaultChkPDirPrefix + containerJson.ID + "/" + checkpointID
 	}
 
-	MigOpts := model.MigrationOpts{
+	PushOpts := model.PushOpts{
 		CheckpointOpts: model.CheckpointOpts{
 			CheckPointID:  checkpointID,
 			CheckPointDir: checkpointDir,
@@ -41,7 +41,7 @@ func CheckpointPush(c *gin.Context) {
 		DestPort:    destPort,
 		ContainerID: containerJson.ID,
 	}
-	err = PushCheckpoint(MigOpts)
+	err = PushCheckpoint(PushOpts)
 	if err != nil {
 		c.JSON(200, gin.H{
 			"result": "failed",
@@ -55,7 +55,7 @@ func CheckpointPush(c *gin.Context) {
 }
 
 // PushCheckpoint push checkpoint to destination and deliver restore request
-func PushCheckpoint(migOpts model.MigrationOpts) error {
+func PushCheckpoint(migOpts model.PushOpts) error {
 	// 这里应该与目的端有一个交互，以便知道目的端是否真实接收到检查点
 	// 这里应该作为文件传输的客户端
 	ip := migOpts.DestIP
@@ -65,7 +65,7 @@ func PushCheckpoint(migOpts model.MigrationOpts) error {
 	params := map[string]string{
 		"ContainerID":   migOpts.ContainerID,
 		"CheckPointID":  migOpts.CheckPointID,
-		"CheckPointDir": migOpts.CheckPointDir,
+		"CheckPointDir": migOpts.CheckPointDir + "/test",
 	}
 	cpPath := migOpts.CheckPointDir + "/" + migOpts.CheckPointID
 
