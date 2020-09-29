@@ -10,11 +10,13 @@ import (
 
 func (c *Cli) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
 	params := map[string]string{
-		"containerName": opts.ContainerName + "2",
-		"imageName":     opts.ImageName,
-		"hostPort":      opts.HostPort,
-		"containerPort": opts.ContainerPort,
-		"cmd":           opts.Cmd,
+		"ContainerName": opts.ContainerName,
+		"ImageName":     opts.ImageName,
+		"HostPort":      opts.HostPort,
+		"ContainerPort": opts.ContainerPort,
+		"PortBindings":  opts.PortBindings,
+		"ExposedPorts":  opts.ExposedPorts,
+		"Cmd":           opts.Cmd,
 	}
 	destUrl := "http://" + opts.DestIP + ":" + opts.DestPort + "/docker/create"
 	fmt.Printf("SendContainerCreate dest Url: %v\n", destUrl)

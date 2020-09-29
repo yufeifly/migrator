@@ -1,12 +1,11 @@
 package container
 
 import (
-	"errors"
 	"fmt"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
 )
 
+// Inspect get info of container
 func Inspect(containerID string) (types.ContainerJSON, error) {
 	serverResp, err := cli.ContainerInspect(ctx, containerID)
 	if err != nil {
@@ -15,27 +14,7 @@ func Inspect(containerID string) (types.ContainerJSON, error) {
 	return serverResp, err
 }
 
-func GetImageRepoTags(containerName string) (string, error) {
-	//imageInspect, _, err := cli.ImageInspectWithRaw(ctx, imageID)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//return imageInspect.RepoTags, err
-	p := "name=" + containerName
-	fmt.Printf("filter: %v\n", p)
-	filter, err := filters.FromParam(p)
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
-		Filters: filter,
-	})
-	if err != nil {
-		return "", err
-	}
-	if len(containers) <= 0 {
-		return "", errors.New("no such container")
-	}
-	return containers[0].Image, nil
-}
-
+// @deprecated get image name
 func GetImageByImageID(imageID string) (string, error) {
 	imageInspect, _, err := cli.ImageInspectWithRaw(ctx, imageID)
 	if err != nil {
@@ -43,4 +22,23 @@ func GetImageByImageID(imageID string) (string, error) {
 	}
 	fmt.Printf("image: %v\n", imageInspect)
 	return imageInspect.RepoTags[0], err
+}
+
+// GetImageByContainer get image name of container, not directly used
+func GetImageByContainer(containerID string) (string, error) {
+	serverResp, err := cli.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return "", err
+	}
+	return serverResp.Config.Image, err
+}
+
+//
+func GetPortBinding(containerID string) error {
+	Resp, err := Inspect(containerID)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("portBinding: %v\n", Resp.HostConfig.PortBindings)
+	return nil
 }

@@ -5,6 +5,8 @@ type CreateOpts struct {
 	ImageName     string
 	HostPort      string
 	ContainerPort string
+	PortBindings  string
+	ExposedPorts  string
 	Cmd           string
 	//DestIP        string // for sending create request
 }

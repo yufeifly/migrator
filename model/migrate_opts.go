@@ -1,7 +1,7 @@
 package model
 
 type MigrateOpts struct {
-	ContainerName string
+	Container     string
 	CheckpointID  string
 	CheckpointDir string
 	DestIP        string

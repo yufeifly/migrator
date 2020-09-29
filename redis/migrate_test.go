@@ -8,7 +8,7 @@ import (
 
 func TestTryMigrate(t *testing.T) {
 	migrateOpts := model.MigrateOpts{
-		ContainerName: "85ea0420bb58",
+		Container:     "d43c78beb4c5", // to identify the container in source node
 		CheckpointID:  "cp-redis",
 		CheckpointDir: "/tmp",
 		DestIP:        "127.0.0.1",

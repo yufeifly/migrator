@@ -21,7 +21,7 @@ func MigrateRedis(c *gin.Context) {
 	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
 
 	migrateOpts := model.MigrateOpts{
-		ContainerName: containerName,
+		Container:     containerName,
 		CheckpointID:  checkpointID,
 		CheckpointDir: checkpointDir,
 		DestIP:        destIP,
@@ -41,46 +41,74 @@ func MigrateRedis(c *gin.Context) {
 // TryMigrate migrate redis service
 func TryMigrate(migrateOpts model.MigrateOpts) error {
 	// get params
-	containerName := migrateOpts.ContainerName
-	checkpointDir := migrateOpts.CheckpointDir
-	destIP := migrateOpts.DestIP
-	checkpointID := migrateOpts.CheckpointID
-	destPort := migrateOpts.DestPort
+	Container := migrateOpts.Container // to identify container in source node
+	CheckpointID := migrateOpts.CheckpointID
+	CheckpointDir := migrateOpts.CheckpointDir
+	DestIP := migrateOpts.DestIP     // the destination ip
+	DestPort := migrateOpts.DestPort // the destination port
+
 	// get all infos of a container
-	containerJson, err := container.Inspect(containerName)
+	containerJson, err := container.Inspect(Container)
 	if err != nil {
 		fmt.Printf("container.Inspect err: %v\n", err)
 		return err
 	}
-	// get image name of the container to be migrated
-	//imageName, err := container.GetImageRepoTags(containerName)
-	imageName, err := container.GetImageByImageID(containerJson.Image)
-	if err != nil {
-		fmt.Printf("container.GetImageRepoTags err: %v\n", err)
-		return err
-	}
 
-	if checkpointDir == "" {
+	// get image name of the container to be migrated
+	// imageName, err := container.GetImageByImageID(containerJson.Image)
+	imageName := containerJson.Config.Image
+
+	// make the default checkpoint dir
+	if CheckpointDir == "" {
 		//checkpointDir = migration.DefaultChkPDirPrefix + container.GetContainerFullID(containerName) + "/" + checkpointID
-		checkpointDir = migration.DefaultChkPDirPrefix + containerJson.ID
+		CheckpointDir = migration.DefaultChkPDirPrefix + containerJson.ID
 	}
 
 	// 1 send container create request
+	// 1.1 get container's cmd in source node
 	cmd, err := json.Marshal(containerJson.Config.Cmd)
+	if err != nil {
+
+	}
 	cmdStr := string(cmd)
 	fmt.Printf("sender cmd: %v\n", cmdStr)
+
+	// 1.2 get container's port map in source node
+	var PortBindingsStr string
+	portBindings := containerJson.HostConfig.PortBindings
+	if portBindings != nil {
+		pbJson, err := json.Marshal(portBindings)
+		if err != nil {
+			return err
+		}
+		PortBindingsStr = string(pbJson)
+	}
+	fmt.Printf("portBinding: %v\n", PortBindingsStr)
+
+	var ExposedPortsStr string
+	exposedPorts := containerJson.Config.ExposedPorts
+	if exposedPorts != nil {
+		epJson, err := json.Marshal(exposedPorts)
+		if err != nil {
+			return err
+		}
+		ExposedPortsStr = string(epJson)
+	}
+	fmt.Printf("exposedPorts: %v\n", ExposedPortsStr)
 
 	cli := client.Cli{}
 	createReqOpts := model.CreateReqOpts{
 		CreateOpts: model.CreateOpts{
-			ContainerName: containerName,
+			ContainerName: "", // todo give dest container a nice name,empty string means a random name
 			ImageName:     imageName,
 			HostPort:      "",
 			ContainerPort: "",
+			PortBindings:  PortBindingsStr,
+			ExposedPorts:  ExposedPortsStr,
 			Cmd:           cmdStr,
 		},
-		DestIP:   destIP,
-		DestPort: destPort,
+		DestIP:   DestIP,
+		DestPort: DestPort,
 	}
 
 	rawResp, err := cli.SendContainerCreate(createReqOpts)
@@ -89,15 +117,19 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		return err
 	}
 	var resp map[string]interface{}
-	json.Unmarshal(rawResp, &resp)
-	containerID := resp["containerId"].(string)
+	err = json.Unmarshal(rawResp, &resp)
+	if err != nil {
+		fmt.Printf("Unmarshal err: %v\n", err)
+		return err
+	}
+	containerID := resp["containerId"].(string) // the containerID of the created container in destination node
 	fmt.Printf("create result: %v\n", containerID)
 
 	// 2 create a checkpoint
 	chOpts := model.CheckpointOpts{
-		Container:     containerName,
-		CheckPointID:  checkpointID,
-		CheckPointDir: checkpointDir,
+		Container:     Container,
+		CheckPointID:  CheckpointID,
+		CheckPointDir: CheckpointDir,
 	}
 	fmt.Printf("checkpoint opts : %v\n", chOpts)
 	err = container.CreateCheckpoint(chOpts)
@@ -108,10 +140,10 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 
 	// 3 push checkpoint to destination node
 	PushOpts := model.PushOpts{
-		ContainerID:    containerID,
 		CheckpointOpts: chOpts,
-		DestIP:         destIP,
-		DestPort:       destPort,
+		DestIP:         DestIP,
+		DestPort:       DestPort,
+		ContainerID:    containerID,
 	}
 	err = migration.PushCheckpoint(PushOpts)
 	if err != nil {
