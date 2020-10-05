@@ -2,7 +2,7 @@ package container
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/utils"
+	"github.com/yufeifly/migrator/utils"
 
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"

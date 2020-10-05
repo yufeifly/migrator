@@ -3,12 +3,12 @@ package client
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/migrator/model"
 	"mime/multipart"
 	"net/http"
 )
 
-func (c *Cli) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
+func (cli *Client) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
 	header := "client.SendContainerCreate"
 	params := map[string]string{
 		"ContainerName": opts.ContainerName,
@@ -29,8 +29,9 @@ func (c *Cli) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
 		logrus.Errorf("%s: NewCreateRequest err %v", header, err)
 		return nil, err
 	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	//
+	// client := &http.Client{}
+	resp, err := cli.Client.Do(req)
 	if err != nil {
 		logrus.Errorf("%s: get response err %v", header, err)
 		return nil, err

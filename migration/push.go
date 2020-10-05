@@ -3,11 +3,11 @@ package migration
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/utils"
+	"github.com/yufeifly/migrator/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yufeifly/proxyd/container"
-	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/migrator/container"
+	"github.com/yufeifly/migrator/model"
 	"io"
 	"io/ioutil"
 	"mime/multipart"

@@ -5,8 +5,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/container"
-	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/migrator/container"
+	"github.com/yufeifly/migrator/model"
 	"net/http"
 	"os"
 )

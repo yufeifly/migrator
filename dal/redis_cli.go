@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/cusErr"
+	"github.com/yufeifly/migrator/cusErr"
 )
 
 var (

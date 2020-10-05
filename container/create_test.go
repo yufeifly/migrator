@@ -2,7 +2,7 @@ package container
 
 import (
 	"fmt"
-	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/migrator/model"
 	"testing"
 )
 

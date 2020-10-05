@@ -3,7 +3,7 @@ package redis
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/dal"
+	"github.com/yufeifly/migrator/dal"
 )
 
 // Get redis get

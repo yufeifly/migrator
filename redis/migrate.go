@@ -1,16 +1,18 @@
+// deprecated
+
 package redis
 
 import (
 	"encoding/json"
 
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/client"
-	"github.com/yufeifly/proxyd/model"
-	"github.com/yufeifly/proxyd/utils"
+	"github.com/yufeifly/migrator/client"
+	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yufeifly/proxyd/container"
-	"github.com/yufeifly/proxyd/migration"
+	"github.com/yufeifly/migrator/container"
+	"github.com/yufeifly/migrator/migration"
 )
 
 // MigrateRedis handler of migrating redis
@@ -107,7 +109,7 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		}).Debug("ExposedPorts")
 	}
 
-	cli := client.Cli{}
+	cli := client.Client{}
 	createReqOpts := model.CreateReqOpts{
 		CreateOpts: model.CreateOpts{
 			ContainerName: "", // todo give dest container a nice name,empty string means a random name

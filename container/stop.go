@@ -3,7 +3,7 @@ package container
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/utils"
+	"github.com/yufeifly/migrator/utils"
 	"time"
 )
 

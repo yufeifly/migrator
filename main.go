@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/yufeifly/proxyd/migration"
-	"github.com/yufeifly/proxyd/redis"
-	"github.com/yufeifly/proxyd/utils"
+	"github.com/yufeifly/migrator/migration"
+	"github.com/yufeifly/migrator/redis"
+	"github.com/yufeifly/migrator/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yufeifly/proxyd/container"
+	"github.com/yufeifly/migrator/container"
 )
 
 func init() {
@@ -22,7 +22,7 @@ func main() {
 	r.GET("/redis/get", redis.Get)
 	// redis set func
 	r.POST("/redis/set", redis.Set)
-	// redis migrate
+	// @deprecated redis migrate
 	r.POST("/redis/migration", redis.MigrateRedis)
 
 	// container operations
@@ -42,6 +42,9 @@ func main() {
 	r.POST("/docker/checkpoint/restore", migration.FetchCheckpointAndRestore)
 	// push checkpoint to destination
 	r.POST("/docker/checkpoint/push", migration.CheckpointPush)
+
+	// migrate a container
+	r.POST("/migrate", migration.MigrateContainer)
 
 	r.Run(":6789") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }

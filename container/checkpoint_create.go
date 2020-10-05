@@ -4,8 +4,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/model"
-	"github.com/yufeifly/proxyd/utils"
+	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/utils"
 )
 
 // CheckpointCreate handler for create a checkpoint for a container

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/docker/go-connections/nat"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/proxyd/model"
-	"github.com/yufeifly/proxyd/utils"
+	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/utils"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/gin-gonic/gin"

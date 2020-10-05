@@ -1,4 +1,4 @@
-module github.com/yufeifly/proxyd
+module github.com/yufeifly/migrator
 
 go 1.14
 

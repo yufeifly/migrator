@@ -3,12 +3,12 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yufeifly/proxyd/model"
+	"github.com/yufeifly/migrator/model"
 	"testing"
 )
 
 func TestCli_SendContainerCreate(t *testing.T) {
-	c := Cli{}
+	c := Client{}
 	cmdSlice := []string{"/bin/sh", "-c", "i=0; while true; do echo $i; i=$(expr $i + 1); sleep 1; done"}
 	cmd, err := json.Marshal(&cmdSlice)
 	fmt.Printf("cmd: %v\n", string(cmd))
