@@ -1,9 +1,9 @@
-package redis
+package handlers
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/dal"
+	"github.com/yufeifly/migrator/redis"
 )
 
 // Get redis get
@@ -11,7 +11,7 @@ func Get(c *gin.Context) {
 	header := "redis.Get"
 	key := c.Request.URL.Query().Get("key")
 
-	val, err := dal.GetKV(key)
+	val, err := redis.Get(key)
 	if err != nil {
 		logrus.Errorf("%s, err: %v", header, err)
 		logrus.Panic(err)
@@ -31,7 +31,7 @@ func Set(c *gin.Context) {
 		"value": val,
 	}).Warn("about to set pair")
 
-	err := dal.SetKV(key, val)
+	err := redis.Set(key, val)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"key":   key,

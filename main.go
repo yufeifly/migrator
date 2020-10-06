@@ -1,12 +1,11 @@
 package main
 
 import (
-	"github.com/yufeifly/migrator/migration"
-	"github.com/yufeifly/migrator/redis"
+	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/handlers"
 	"github.com/yufeifly/migrator/utils"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yufeifly/migrator/container"
 )
 
 func init() {
@@ -19,32 +18,34 @@ func main() {
 	r := gin.Default()
 	// redis operations
 	// redis get func
-	r.GET("/redis/get", redis.Get)
+	r.GET("/redis/get", handlers.Get)
 	// redis set func
-	r.POST("/redis/set", redis.Set)
+	r.POST("/redis/set", handlers.Set)
 	// @deprecated redis migrate
-	r.POST("/redis/migration", redis.MigrateRedis)
+	// r.POST("/redis/migration", redis.MigrateRedis)
 
 	// container operations
 	//  run a container
-	r.POST("/docker/run", container.Run)
+	r.POST("/docker/run", handlers.Run)
 	//  start a container
-	r.POST("/docker/start", container.Start)
+	r.POST("/docker/start", handlers.Start)
 	//  list containers
-	r.GET("/docker/list", container.List)
+	r.GET("/docker/list", handlers.List)
 	//  stop a container
-	r.POST("/docker/stop", container.Stop)
+	r.POST("/docker/stop", handlers.Stop)
 	//  create a container
-	r.POST("/docker/create", container.Create)
+	r.POST("/docker/create", handlers.Create)
 	//  create a container checkpoint
-	r.POST("/docker/checkpoint/create", container.CheckpointCreate)
+	r.POST("/docker/checkpoint/create", handlers.CheckpointCreate)
 	// receive checkpoint and restore from it
-	r.POST("/docker/checkpoint/restore", migration.FetchCheckpointAndRestore)
+	r.POST("/docker/checkpoint/restore", handlers.FetchCheckpointAndRestore)
 	// push checkpoint to destination
-	r.POST("/docker/checkpoint/push", migration.CheckpointPush)
-
+	r.POST("/docker/checkpoint/push", handlers.CheckpointPush)
 	// migrate a container
-	r.POST("/migrate", migration.MigrateContainer)
+	r.POST("/docker/migrate", handlers.MigrateContainer)
 
-	r.Run(":6789") // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	// listen and serve on 0.0.0.0:6789 (for windows "localhost:8080")
+	if err := r.Run(":6789"); err != nil {
+		logrus.Errorf("gin.run err: %v", err)
+	}
 }

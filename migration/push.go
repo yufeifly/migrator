@@ -5,8 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/utils"
 
-	"github.com/gin-gonic/gin"
-	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
 	"io"
 	"io/ioutil"
@@ -22,46 +20,6 @@ func init() {
 	if utils.IsDebugEnabled() {
 		logger.SetLevel(logrus.DebugLevel)
 	}
-}
-
-func CheckpointPush(c *gin.Context) {
-	header := "migration.CheckpointPush"
-
-	containerName := c.Request.URL.Query().Get("container")
-	checkpointID := c.Request.URL.Query().Get("checkpointID")
-	destIP := c.Request.URL.Query().Get("destIP")
-	destPort := c.Request.URL.Query().Get("destPort")
-	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
-
-	containerJson, err := container.Inspect(containerName)
-	if err != nil {
-		logrus.Errorf("%s, inspect container err: %v", header, err)
-		utils.ReportErr(c, err)
-		logrus.Panic(err)
-	}
-	// get default dir to store checkpoint
-	if checkpointDir == "" {
-		checkpointDir = DefaultChkPDirPrefix + containerJson.ID + "/" + checkpointID
-	}
-
-	PushOpts := model.PushOpts{
-		CheckpointOpts: model.CheckpointOpts{
-			CheckPointID:  checkpointID,
-			CheckPointDir: checkpointDir,
-		},
-		DestIP:      destIP,
-		DestPort:    destPort,
-		ContainerID: containerJson.ID,
-	}
-	err = PushCheckpoint(PushOpts)
-	if err != nil {
-		utils.ReportErr(c, err)
-		logrus.Panic(err)
-	}
-
-	c.JSON(200, gin.H{
-		"result": "success",
-	})
 }
 
 // PushCheckpoint push checkpoint to destination and deliver restore request
@@ -158,13 +116,13 @@ func newFileUploadRequest(url string, cpPath string, paths []string, params map[
 	}
 
 	if err := writer.Close(); err != nil {
-		logrus.Error("%s, close writer err: %v", header, err)
+		logrus.Errorf("%s, close writer err: %v", header, err)
 		return nil, err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, url, body)
 	if err != nil {
-		logrus.Error("%s, new http request err: %v", header, err)
+		logrus.Errorf("%s, new http request err: %v", header, err)
 		return nil, err
 	}
 	req.Header.Add("Content-Type", writer.FormDataContentType())
@@ -178,7 +136,7 @@ func getFilesFromCheckpoint(pathname string) ([]string, error) {
 	var files []string
 	rd, err := ioutil.ReadDir(pathname)
 	if err != nil {
-		logrus.Error("%s, read dir err: %v", header, err)
+		logrus.Errorf("%s, read dir err: %v", header, err)
 		return nil, err
 	}
 	for _, fi := range rd {
@@ -190,7 +148,7 @@ func getFilesFromCheckpoint(pathname string) ([]string, error) {
 
 			adder, err := getFilesFromCheckpoint(pathname + "/" + fi.Name())
 			if err != nil {
-				logrus.Error("%s, recursively getFilesFromCheckpoint err: %v", header, err)
+				logrus.Errorf("%s, recursively getFilesFromCheckpoint err: %v", header, err)
 				return nil, err
 			}
 			for ind, val := range adder {
