@@ -19,25 +19,13 @@ func List(c *gin.Context) {
 		all = true
 	}
 
-	//containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
-	//	All: all,
-	//})
 	containers, err := container.ListContainers(types.ContainerListOptions{
 		All: all,
 	})
 	if err != nil {
 		utils.ReportErr(c, err)
-		logrus.Panic(err)
+		logrus.Panicf("%s, container.ListContainers panic: %v", header, err)
 	}
 
-	list := make(gin.H)
-	for _, Container := range containers {
-		logrus.WithFields(logrus.Fields{
-			"ContainerID": Container.ID[:10],
-			"Image":       Container.Image,
-		}).Infof("%s, List infos", header)
-		list[Container.ID[:10]] = Container.Image
-	}
-
-	c.JSON(200, list)
+	c.JSON(200, containers)
 }

@@ -6,31 +6,22 @@ import (
 	"github.com/yufeifly/migrator/migration"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 // MigrateRedis handler of migrating redis
 func MigrateContainer(c *gin.Context) {
 	// 获取请求参数
-	containerName := c.Query("container")
-	checkpointID := c.Query("checkpointID")
-	destIP := c.Query("destIP")
-	destPort := c.Query("destPort")
-	checkpointDir := c.Query("checkpointDir")
-
-	migrateOpts := model.MigrateOpts{
-		Container:     containerName,
-		CheckpointID:  checkpointID,
-		CheckpointDir: checkpointDir,
-		DestIP:        destIP,
-		DestPort:      destPort,
+	var migrateOpts model.MigrateOpts
+	if err := c.ShouldBindJSON(&migrateOpts); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
+
 	err := migration.TryMigrate(migrateOpts)
 	if err != nil {
 		utils.ReportErr(c, err)
 		logrus.Panic(err)
 	}
 	//
-	c.JSON(200, gin.H{
-		"result": "success",
-	})
+	c.JSON(200, gin.H{"result": "success"})
 }

@@ -28,9 +28,9 @@ func main() {
 	//  run a container
 	r.POST("/docker/run", handlers.Run)
 	//  start a container
-	r.POST("/docker/start", handlers.Start)
+	r.POST("/container/start", handlers.Start)
 	//  list containers
-	r.GET("/docker/list", handlers.List)
+	r.GET("/container/list", handlers.List)
 	//  stop a container
 	r.POST("/docker/stop", handlers.Stop)
 	//  create a container

@@ -11,8 +11,10 @@ func TestTryMigrate(t *testing.T) {
 		Container:     "58bfe686b71a", // to identify the container in source node
 		CheckpointID:  "cp-redis",
 		CheckpointDir: "/tmp",
-		DestIP:        "127.0.0.1",
-		DestPort:      "6789",
+		Address: model.Address{
+			IP:   "127.0.0.1",
+			Port: "6789",
+		},
 	}
 	err := TryMigrate(migrateOpts)
 	if err != nil {

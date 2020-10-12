@@ -15,8 +15,8 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 	Container := migrateOpts.Container // to identify container in source node
 	CheckpointID := migrateOpts.CheckpointID
 	CheckpointDir := migrateOpts.CheckpointDir
-	DestIP := migrateOpts.DestIP     // the destination ip
-	DestPort := migrateOpts.DestPort // the destination port
+	DestIP := migrateOpts.IP     // the destination ip
+	DestPort := migrateOpts.Port // the destination port
 
 	// get all infos of a container
 	containerJson, err := container.Inspect(Container)

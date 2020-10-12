@@ -12,11 +12,11 @@ import (
 func CheckpointPush(c *gin.Context) {
 	header := "migration.CheckpointPush"
 
-	containerName := c.Request.URL.Query().Get("container")
-	checkpointID := c.Request.URL.Query().Get("checkpointID")
-	destIP := c.Request.URL.Query().Get("destIP")
-	destPort := c.Request.URL.Query().Get("destPort")
-	checkpointDir := c.Request.URL.Query().Get("checkpointDir")
+	containerName := c.Query("container")
+	checkpointID := c.Query("checkpointID")
+	destIP := c.Query("destIP")
+	destPort := c.Query("destPort")
+	checkpointDir := c.Query("checkpointDir")
 
 	containerJson, err := container.Inspect(containerName)
 	if err != nil {

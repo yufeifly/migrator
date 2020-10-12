@@ -13,7 +13,7 @@ func TestCreateContainer(t *testing.T) {
 		HostPort:      "",
 		ContainerPort: "",
 		Cmd:           "",
-		DestIP:        "",
+		//DestIP:        "",
 	}
 	_, err := CreateContainer(createOpts)
 	if err != nil {
