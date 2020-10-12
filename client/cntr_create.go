@@ -19,7 +19,7 @@ func (cli *Client) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error)
 		"ExposedPorts":  opts.ExposedPorts,
 		"Cmd":           opts.Cmd,
 	}
-	destUrl := "http://" + opts.DestIP + ":" + opts.DestPort + "/docker/create"
+	destUrl := "http://" + opts.DestIP + ":" + opts.DestPort + "/container/create"
 	logrus.WithFields(logrus.Fields{
 		"DestUrl": destUrl,
 	}).Info(header)

@@ -29,7 +29,7 @@ func PushCheckpoint(migOpts model.PushOpts) error {
 	ip := migOpts.DestIP
 	port := migOpts.DestPort
 
-	urlPost := "http://" + ip + ":" + port + "/docker/checkpoint/restore"
+	urlPost := "http://" + ip + ":" + port + "/container/checkpoint/restore"
 	params := map[string]string{
 		"ContainerID":   migOpts.ContainerID,
 		"CheckPointID":  migOpts.CheckPointID,

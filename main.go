@@ -26,23 +26,26 @@ func main() {
 
 	// container operations
 	//  run a container
-	r.POST("/docker/run", handlers.Run)
+	r.POST("/container/run", handlers.Run)
 	//  start a container
 	r.POST("/container/start", handlers.Start)
 	//  list containers
 	r.GET("/container/list", handlers.List)
 	//  stop a container
-	r.POST("/docker/stop", handlers.Stop)
+	r.POST("/container/stop", handlers.Stop)
 	//  create a container
-	r.POST("/docker/create", handlers.Create)
+	r.POST("/container/create", handlers.Create)
 	//  create a container checkpoint
-	r.POST("/docker/checkpoint/create", handlers.CheckpointCreate)
+	r.POST("/container/checkpoint/create", handlers.CheckpointCreate)
 	// receive checkpoint and restore from it
-	r.POST("/docker/checkpoint/restore", handlers.FetchCheckpointAndRestore)
+	r.POST("/container/checkpoint/restore", handlers.FetchCheckpointAndRestore)
 	// push checkpoint to destination
-	r.POST("/docker/checkpoint/push", handlers.CheckpointPush)
+	r.POST("/container/checkpoint/push", handlers.CheckpointPush)
 	// migrate a container
-	r.POST("/docker/migrate", handlers.MigrateContainer)
+	r.POST("/container/migrate", handlers.MigrateContainer)
+
+	// logger
+	r.POST("/logger", handlers.ReceiveLog)
 
 	// listen and serve on 0.0.0.0:6789 (for windows "localhost:8080")
 	if err := r.Run(":6789"); err != nil {
