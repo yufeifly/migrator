@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/task"
 	"net/http"
 	"os"
 )
@@ -23,7 +24,16 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	logrus.WithFields(logrus.Fields{
 		"checkpoint path": cpPath,
 		"checkpointID":    cpID,
-	}).Debug("the checkpoint path and ID received")
+	}).Info("the checkpoint path and ID received")
+	// delete checkpoint dir if it exists
+	if fileExist(cpPath) {
+		err := os.RemoveAll(cpPath)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"result": "failed"})
+			logrus.Panic(err)
+		}
+	}
+
 	// Multipart form
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -64,7 +74,23 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 		logrus.Errorf("%s, start container err: %v", header, err)
 	}
 
-	c.JSON(200, gin.H{
-		"result": "success",
-	})
+	c.JSON(http.StatusOK, gin.H{"result": "success"})
+	// todo inform proxy it has started
+
+	// consume logs
+	logrus.Warn("going to consume logs")
+	consumer := task.NewConsumer()
+	consumer.Consume()
+
+}
+
+func fileExist(path string) bool {
+	_, err := os.Stat(path) //os.Stat获取文件信息
+	if err != nil {
+		if os.IsExist(err) {
+			return true
+		}
+		return false
+	}
+	return true
 }
