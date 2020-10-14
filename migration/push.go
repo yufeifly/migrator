@@ -33,7 +33,7 @@ func PushCheckpoint(migOpts model.PushOpts) error {
 	params := map[string]string{
 		"ContainerID":   migOpts.ContainerID,
 		"CheckPointID":  migOpts.CheckPointID,
-		"CheckPointDir": migOpts.CheckPointDir + "/test",
+		"CheckPointDir": migOpts.CheckPointDir,
 	}
 	cpPath := migOpts.CheckPointDir + "/" + migOpts.CheckPointID
 

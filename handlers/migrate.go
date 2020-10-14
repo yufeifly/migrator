@@ -18,10 +18,12 @@ func MigrateContainer(c *gin.Context) {
 	}
 
 	err := migration.TryMigrate(migrateOpts)
+
 	if err != nil {
 		utils.ReportErr(c, err)
 		logrus.Panic(err)
 	}
+	logrus.Warn("migration.TryMigrate finished")
 	//
-	c.JSON(200, gin.H{"result": "success"})
+	c.JSON(http.StatusOK, gin.H{"result": "success"})
 }

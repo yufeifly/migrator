@@ -2,8 +2,8 @@ package task
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/client"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/redis"
 	"time"
@@ -23,35 +23,42 @@ func NewConsumer() *Consumer {
 
 // Consume consume a log in task queue
 func (c *Consumer) Consume() error {
+	cli := client.NewClient()
 	// infinity loop, consume logs
 	for {
 		//fmt.Println("queue: ", DefaultQueue)
+		logrus.Info("tick")
 		taskJson := DefaultQueue.PopFront()
 		if taskJson == "" {
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 			continue
 		}
-		fmt.Printf("taskJson: %v\n", taskJson)
 		// unmarshall get serialized kv
 		var task model.Log
 		err := json.Unmarshal([]byte(taskJson), &task)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("consumer log: %v\n", task)
-		for _, kv := range task.GetLogQueue() {
-			var sli []string
-			json.Unmarshal([]byte(kv), &sli)
-			redis.Set(sli[0], sli[1])
+		if len(task.LogQueue) > 0 {
+			for _, kv := range task.GetLogQueue() {
+				var sli []string
+				json.Unmarshal([]byte(kv), &sli)
+				redis.Set(sli[0], sli[1])
+			}
+		}
+
+		// stop this goroutine if it is the last task
+		if task.GetLastFlag() {
+			logrus.Warn("the last log consumed")
+			return nil
 		}
 		// consumed a log, send this message to src
 		logrus.Infof("consumed a log, msg send to src")
-		time.Sleep(200 * time.Millisecond)
-		// stop this goroutine if it is the last task
-		flag := task.GetLastFlag()
-		fmt.Println("flag: ", flag)
-		if flag {
-			return nil
+		//time.Sleep(200 * time.Millisecond)
+		err = cli.ConsumeAdder()
+		if err != nil {
+			logrus.Errorf("cli.consumed failed, err: %v", err)
+			return err
 		}
 	}
 	return nil

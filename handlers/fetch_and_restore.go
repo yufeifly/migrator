@@ -8,8 +8,10 @@ import (
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/task"
+	"github.com/yufeifly/migrator/utils"
 	"net/http"
 	"os"
+	"time"
 )
 
 // ReceiveCheckpointAndRestore get checkpoint from source node and restore from it
@@ -25,8 +27,9 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 		"checkpoint path": cpPath,
 		"checkpointID":    cpID,
 	}).Info("the checkpoint path and ID received")
+
 	// delete checkpoint dir if it exists
-	if fileExist(cpPath) {
+	if utils.FileExist(cpPath) {
 		err := os.RemoveAll(cpPath)
 		if err != nil {
 			c.JSON(http.StatusOK, gin.H{"result": "failed"})
@@ -61,6 +64,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 
 	// start the container
 	// 1 todo check if container created
+	time.Sleep(500 * time.Millisecond)
 	// 2 start the container
 	startOpts := model.StartOpts{
 		CStartOpts: types.ContainerStartOptions{
@@ -74,23 +78,14 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 		logrus.Errorf("%s, start container err: %v", header, err)
 	}
 
+	// inform proxy it has started. request: proxy -> src -> dst, so the respond: dst -> src -> proxy
 	c.JSON(http.StatusOK, gin.H{"result": "success"})
-	// todo inform proxy it has started
 
 	// consume logs
 	logrus.Warn("going to consume logs")
-	consumer := task.NewConsumer()
-	consumer.Consume()
-
-}
-
-func fileExist(path string) bool {
-	_, err := os.Stat(path) //os.Stat获取文件信息
-	if err != nil {
-		if os.IsExist(err) {
-			return true
-		}
-		return false
-	}
-	return true
+	go func() {
+		consumer := task.NewConsumer()
+		consumer.Consume()
+		logrus.Info("consumer goroutine stopped")
+	}()
 }

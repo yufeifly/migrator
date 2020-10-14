@@ -10,7 +10,7 @@ import (
 
 // TryMigrate migrate redis service
 func TryMigrate(migrateOpts model.MigrateOpts) error {
-	header := "redis.TryMigrate"
+	header := "migration.TryMigrate"
 	// get params
 	Container := migrateOpts.Container // to identify container in source node
 	CheckpointID := migrateOpts.CheckpointID
@@ -132,5 +132,6 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		logrus.Errorf("%s, Push Checkpoint err: %v", header, err)
 		return err
 	}
+	logrus.Warn("PushCheckpoint finished")
 	return nil
 }

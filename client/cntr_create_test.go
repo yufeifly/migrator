@@ -21,7 +21,7 @@ func TestCli_SendContainerCreate(t *testing.T) {
 			ContainerPort: "",
 			Cmd:           string(cmd),
 		},
-		DestIP:   "127.0.0.1:6789",
+		DestIP:   "127.0.0.1",
 		DestPort: "6789",
 	}
 	got, err := c.SendContainerCreate(opts)
