@@ -6,22 +6,20 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 // List handler for listing container(s)
 func List(c *gin.Context) {
 	header := "container.List"
+	logrus.Infof("%s, list request: %v", header, c.Request)
 
-	// if all=true or all=1 then docker ps -a
-	var all bool
-	allStr := c.Query("all")
-	if allStr == "true" || allStr == "1" {
-		all = true
+	var listOpts types.ContainerListOptions
+	if err := c.ShouldBindJSON(&listOpts); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
 
-	containers, err := container.ListContainers(types.ContainerListOptions{
-		All: all,
-	})
+	containers, err := container.ListContainers(listOpts)
 	if err != nil {
 		utils.ReportErr(c, err)
 		logrus.Panicf("%s, container.ListContainers panic: %v", header, err)

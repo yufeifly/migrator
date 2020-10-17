@@ -5,13 +5,24 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/utils"
+	"strconv"
 	"time"
 )
 
 // stop a container
 func Stop(c *gin.Context) {
-	ContainerID := c.Query("ContainerID")
-	timeout := time.Second * 10
+	ContainerID := c.PostForm("ContainerID")
+	Seconds := c.PostForm("Timeout")
+
+	var timeout *time.Duration
+	if Seconds != "" {
+		valSeconds, err := strconv.Atoi(Seconds)
+		if err != nil {
+			logrus.Panic(err)
+		}
+		timeoutCVal := time.Duration(valSeconds) * time.Second
+		timeout = &timeoutCVal
+	}
 
 	//err := cli.ContainerStop(ctx, ContainerID, &timeout)
 	err := container.StopContainer(ContainerID, timeout)
@@ -24,7 +35,5 @@ func Stop(c *gin.Context) {
 		"ContainerID": ContainerID,
 	}).Info("the container has been stopped")
 
-	c.JSON(200, gin.H{
-		"result": "success",
-	})
+	c.JSON(200, gin.H{"result": "success"})
 }
