@@ -43,7 +43,7 @@ func (c *Consumer) Consume() error {
 			for _, kv := range task.GetLogQueue() {
 				var sli []string
 				json.Unmarshal([]byte(kv), &sli)
-				redis.Set(sli[0], sli[1])
+				redis.Set("service1", sli[0], sli[1])
 			}
 		}
 
