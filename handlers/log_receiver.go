@@ -15,9 +15,21 @@ func ReceiveLog(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
 	logrus.Warnf("data to be consumed: %v", log)
+	serviceID := c.PostForm("Service")
 
 	logJson, _ := json.Marshal(log)
-	task.DefaultQueue.Push(string(logJson)) // push a log to task queue
+
+	q := task.DefaultMapper.GetTaskQueue(serviceID)
+	if q == nil {
+		q := task.NewQueue()
+		task.DefaultMapper.AddTaskQueue(serviceID, q)
+	}
+
+	if task.DefaultMapper.GetTaskQueue(serviceID) != nil {
+		task.DefaultMapper.GetTaskQueue(serviceID).Push(string(logJson)) // push a log to task queue
+	} else {
+		logrus.Panic("task.NewQueue failed")
+	}
 
 	c.JSON(200, "log received")
 }

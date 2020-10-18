@@ -34,6 +34,7 @@ func PushCheckpoint(migOpts model.PushOpts) error {
 		"ContainerID":   migOpts.ContainerID,
 		"CheckPointID":  migOpts.CheckPointID,
 		"CheckPointDir": migOpts.CheckPointDir,
+		"ServiceID":     migOpts.ServiceID,
 	}
 	cpPath := migOpts.CheckPointDir + "/" + migOpts.CheckPointID
 

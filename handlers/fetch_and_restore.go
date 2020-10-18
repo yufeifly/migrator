@@ -21,6 +21,8 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
 	cID := c.PostForm("ContainerID")
+	serviceID := c.PostForm("ServiceID")
+
 	cpPath := cpDir + "/" + cpID // example: /tmp/cp1
 
 	logrus.WithFields(logrus.Fields{
@@ -82,10 +84,14 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": "success"})
 
 	// consume logs
+	// todo but which log belongs to it?
 	logrus.Warn("going to consume logs")
 	go func() {
 		consumer := task.NewConsumer()
-		consumer.Consume()
+		err := consumer.Consume(serviceID)
+		if err != nil {
+			logrus.Panic(err)
+		}
 		logrus.Info("consumer goroutine stopped")
 	}()
 }

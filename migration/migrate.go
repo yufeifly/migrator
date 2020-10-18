@@ -91,7 +91,7 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		DestPort: DestPort,
 	}
 
-	rawResp, err := cli.SendContainerCreate(createReqOpts)
+	rawResp, err := cli.SendContainerCreate(createReqOpts) // send to dst
 	if err != nil {
 		logrus.Errorf("%s, SendContainerCreate err: %v", header, err)
 		return err
@@ -122,10 +122,12 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 
 	// 3 push checkpoint to destination node
 	PushOpts := model.PushOpts{
-		CheckpointOpts: chOpts,
-		DestIP:         DestIP,
-		DestPort:       DestPort,
-		ContainerID:    containerID,
+		CheckPointID:  chOpts.CheckPointID,
+		CheckPointDir: chOpts.CheckPointDir,
+		DestIP:        DestIP,
+		DestPort:      DestPort,
+		ContainerID:   containerID, // created in dst
+		ServiceID:     migrateOpts.ServiceID,
 	}
 	err = PushCheckpoint(PushOpts)
 	if err != nil {

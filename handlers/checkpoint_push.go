@@ -30,13 +30,11 @@ func CheckpointPush(c *gin.Context) {
 	}
 
 	PushOpts := model.PushOpts{
-		CheckpointOpts: model.CheckpointOpts{
-			CheckPointID:  checkpointID,
-			CheckPointDir: checkpointDir,
-		},
-		DestIP:      destIP,
-		DestPort:    destPort,
-		ContainerID: containerJson.ID,
+		CheckPointID:  checkpointID,
+		CheckPointDir: checkpointDir,
+		DestIP:        destIP,
+		DestPort:      destPort,
+		ContainerID:   containerJson.ID,
 	}
 	err = migration.PushCheckpoint(PushOpts)
 	if err != nil {

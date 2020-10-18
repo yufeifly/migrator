@@ -6,9 +6,10 @@ import (
 	"github.com/yufeifly/migrator/redis"
 )
 
-// Get redis get
+// Get redis get handler
 func Get(c *gin.Context) {
 	header := "redis.Get"
+
 	key := c.Query("key")
 	serviceID := c.Query("service")
 
@@ -21,7 +22,7 @@ func Get(c *gin.Context) {
 	}
 }
 
-// Set redis set
+// Set redis set handler
 func Set(c *gin.Context) {
 	key := c.PostForm("key")
 	val := c.PostForm("value")

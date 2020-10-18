@@ -22,13 +22,21 @@ func NewConsumer() *Consumer {
 }
 
 // Consume consume a log in task queue
-func (c *Consumer) Consume() error {
+func (c *Consumer) Consume(serviceID string) error {
 	cli := client.NewClient()
+
+	q := DefaultMapper.GetTaskQueue(serviceID)
+	if q == nil {
+		q := NewQueue()
+		DefaultMapper.AddTaskQueue(serviceID, q)
+	}
+
 	// infinity loop, consume logs
 	for {
 		//fmt.Println("queue: ", DefaultQueue)
 		logrus.Info("tick")
-		taskJson := DefaultQueue.PopFront()
+		// get logs from the right queue
+		taskJson := DefaultMapper.GetTaskQueue(serviceID).PopFront()
 		if taskJson == "" {
 			time.Sleep(1000 * time.Millisecond)
 			continue

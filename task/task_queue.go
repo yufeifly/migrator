@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-var DefaultQueue *Queue
+//var DefaultQueue *Queue
 
 type Queue struct {
 	Q        []string
@@ -13,9 +13,9 @@ type Queue struct {
 	sync.Mutex
 }
 
-func init() {
-	DefaultQueue = NewQueue()
-}
+//func init() {
+//	DefaultQueue = NewQueue()
+//}
 
 func NewQueue() *Queue {
 	return &Queue{
