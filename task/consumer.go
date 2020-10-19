@@ -22,13 +22,15 @@ func NewConsumer() *Consumer {
 }
 
 // Consume consume a log in task queue
-func (c *Consumer) Consume(serviceID string) error {
+func (c *Consumer) Consume(ProxyServiceID string) error {
+	logrus.Infof("Consume ProxyServiceID: %v", ProxyServiceID)
 	cli := client.NewClient()
 
-	q := DefaultMapper.GetTaskQueue(serviceID)
+	q := DefaultMapper.GetTaskQueue(ProxyServiceID)
 	if q == nil {
 		q := NewQueue()
-		DefaultMapper.AddTaskQueue(serviceID, q)
+		DefaultMapper.AddTaskQueue(ProxyServiceID, q)
+		logrus.Warn("Consume: new a task queue")
 	}
 
 	// infinity loop, consume logs
@@ -36,7 +38,7 @@ func (c *Consumer) Consume(serviceID string) error {
 		//fmt.Println("queue: ", DefaultQueue)
 		logrus.Info("tick")
 		// get logs from the right queue
-		taskJson := DefaultMapper.GetTaskQueue(serviceID).PopFront()
+		taskJson := DefaultMapper.GetTaskQueue(ProxyServiceID).PopFront()
 		if taskJson == "" {
 			time.Sleep(1000 * time.Millisecond)
 			continue

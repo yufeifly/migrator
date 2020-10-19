@@ -31,10 +31,12 @@ func PushCheckpoint(migOpts model.PushOpts) error {
 
 	urlPost := "http://" + ip + ":" + port + "/container/checkpoint/restore"
 	params := map[string]string{
-		"ContainerID":   migOpts.ContainerID,
-		"CheckPointID":  migOpts.CheckPointID,
-		"CheckPointDir": migOpts.CheckPointDir,
-		"ServiceID":     migOpts.ServiceID,
+		"ContainerID":    migOpts.ContainerID,
+		"CheckPointID":   migOpts.CheckPointID,
+		"CheckPointDir":  migOpts.CheckPointDir,
+		"ServiceID":      migOpts.ServiceID, // of src worker
+		"ServicePort":    migOpts.ServicePort,
+		"ProxyServiceID": migOpts.ProxyService,
 	}
 	cpPath := migOpts.CheckPointDir + "/" + migOpts.CheckPointID
 

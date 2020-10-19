@@ -1,4 +1,4 @@
-// map[serviceID]taskQueue
+// map[ProxyServiceID]taskQueue
 package task
 
 import "sync"
@@ -18,16 +18,16 @@ func NewMapper() *Mapper {
 	return &Mapper{}
 }
 
-func (m *Mapper) AddTaskQueue(serviceID string, q *Queue) {
+func (m *Mapper) AddTaskQueue(ProxyServiceID string, q *Queue) {
 	m.Lock()
-	if m.GetTaskQueue(serviceID) == nil {
-		m.Map.Store(serviceID, q)
+	if m.GetTaskQueue(ProxyServiceID) == nil {
+		m.Map.Store(ProxyServiceID, q)
 	}
 	m.Unlock()
 }
 
-func (m *Mapper) GetTaskQueue(serviceID string) *Queue {
-	que, ok := m.Map.Load(serviceID)
+func (m *Mapper) GetTaskQueue(ProxyServiceID string) *Queue {
+	que, ok := m.Map.Load(ProxyServiceID)
 	if !ok {
 		return nil
 	}

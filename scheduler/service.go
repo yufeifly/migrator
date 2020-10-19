@@ -6,9 +6,11 @@ import (
 )
 
 type Service struct {
-	ID          string        // service id
-	ContainerID string        // the worker container
-	ServiceCli  *redis.Client // redis connection
+	ID             string        // service id
+	ProxyServiceID string        // proxy serviceID
+	ServicePort    string        // service port, also the exposed port of the container
+	ContainerID    string        // the worker container
+	ServiceCli     *redis.Client // redis connection
 }
 
 func init() {
@@ -18,8 +20,10 @@ func init() {
 // NewService new a storage service, keep it in map
 func NewService(opts model.ServiceOpts) *Service {
 	return &Service{
-		ID:          opts.ID,
-		ContainerID: opts.Container,
+		ID:             opts.ID,
+		ProxyServiceID: opts.ProxyServiceID,
+		ServicePort:    opts.ServicePort,
+		ContainerID:    opts.Container,
 		ServiceCli: redis.NewClient(&redis.Options{
 			Addr:     "localhost" + ":" + opts.ServicePort,
 			Password: "", // no password set
@@ -31,16 +35,18 @@ func NewService(opts model.ServiceOpts) *Service {
 // PseudoRegister register services
 func PseudoRegister() {
 	opts1 := model.ServiceOpts{
-		ID:          "service.A1",
-		ServicePort: "6380",
-		Container:   "19571cac86b3",
+		ID:             "service.A1",
+		ProxyServiceID: "service1",
+		ServicePort:    "6380",
+		Container:      "e5f4f531946d",
 	}
 	DefaultScheduler.AddService(NewService(opts1))
 
 	opts2 := model.ServiceOpts{
-		ID:          "service.B1",
-		ServicePort: "6666",
-		Container:   "30860d58aebb",
+		ID:             "service.B1",
+		ProxyServiceID: "service2",
+		ServicePort:    "6666",
+		Container:      "30860d58aebb",
 	}
 	DefaultScheduler.AddService(NewService(opts2))
 }

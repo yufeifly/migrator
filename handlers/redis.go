@@ -11,7 +11,7 @@ func Get(c *gin.Context) {
 	header := "redis.Get"
 
 	key := c.Query("key")
-	serviceID := c.Query("service")
+	serviceID := c.Query("service") // of worker
 
 	val, err := redis.Get(serviceID, key)
 	if err != nil {

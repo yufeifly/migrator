@@ -9,6 +9,7 @@ import (
 	"github.com/yufeifly/migrator/utils"
 )
 
+// todo
 func CheckpointPush(c *gin.Context) {
 	header := "migration.CheckpointPush"
 
@@ -42,7 +43,5 @@ func CheckpointPush(c *gin.Context) {
 		logrus.Panic(err)
 	}
 
-	c.JSON(200, gin.H{
-		"result": "success",
-	})
+	c.JSON(200, gin.H{"result": "success"})
 }

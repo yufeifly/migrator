@@ -6,20 +6,31 @@ import (
 	"github.com/yufeifly/migrator/client"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/scheduler"
+	"strconv"
+	"strings"
 )
 
 // TryMigrate migrate redis service
 func TryMigrate(migrateOpts model.MigrateOpts) error {
 	header := "migration.TryMigrate"
 	// get params
-	Container := migrateOpts.Container // to identify container in source node
+	//Container := migrateOpts.Container // to identify container in source node
+	ServiceID := migrateOpts.ServiceID //
+	ProxyServiceID := migrateOpts.ProxyService
 	CheckpointID := migrateOpts.CheckpointID
 	CheckpointDir := migrateOpts.CheckpointDir
 	DestIP := migrateOpts.IP     // the destination ip
 	DestPort := migrateOpts.Port // the destination port
 
+	service, err := scheduler.DefaultScheduler.GetService(ServiceID)
+	if err != nil {
+		logrus.Errorf("%s, scheduler.DefaultScheduler.GetService err: %v", header, err)
+		return err
+	}
+
 	// get all infos of a container
-	containerJson, err := container.Inspect(Container)
+	containerJson, err := container.Inspect(service.ContainerID)
 	if err != nil {
 		logrus.Errorf("%s, inspect err: %v", header, err)
 		return err
@@ -109,7 +120,7 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 
 	// 2 create a checkpoint
 	chOpts := model.CheckpointOpts{
-		Container:     Container,
+		Container:     service.ContainerID,
 		CheckPointID:  CheckpointID,
 		CheckPointDir: CheckpointDir,
 	}
@@ -126,8 +137,10 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		CheckPointDir: chOpts.CheckPointDir,
 		DestIP:        DestIP,
 		DestPort:      DestPort,
-		ContainerID:   containerID, // created in dst
-		ServiceID:     migrateOpts.ServiceID,
+		ContainerID:   containerID,                               // created in dst
+		ServiceID:     MakeNameForService(migrateOpts.ServiceID), // make a name for dst service based on src service name
+		ServicePort:   service.ServicePort,
+		ProxyService:  ProxyServiceID,
 	}
 	err = PushCheckpoint(PushOpts)
 	if err != nil {
@@ -136,4 +149,17 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 	}
 	logrus.Warn("PushCheckpoint finished")
 	return nil
+}
+
+func MakeNameForService(oldName string) string {
+	var newName string
+	dot := strings.Index(oldName, ".")
+	newName = oldName[:dot+2] + adder(oldName[dot+2:])
+	return newName
+}
+
+func adder(tail string) string {
+	num, _ := strconv.Atoi(tail)
+	num++
+	return strconv.Itoa(num)
 }

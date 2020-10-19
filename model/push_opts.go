@@ -8,4 +8,6 @@ type PushOpts struct {
 	DestPort      string
 	ContainerID   string
 	ServiceID     string
+	ServicePort   string
+	ProxyService  string
 }

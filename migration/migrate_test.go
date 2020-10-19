@@ -8,7 +8,8 @@ import (
 
 func TestTryMigrate(t *testing.T) {
 	migrateOpts := model.MigrateOpts{
-		Container:     "9f42f4547a45", // to identify the container in source node
+		//Container:     "9f42f4547a45", // to identify the container in source node
+		ServiceID:     "",
 		CheckpointID:  "cp-redis",
 		CheckpointDir: "/tmp",
 		Address: model.Address{
@@ -21,5 +22,15 @@ func TestTryMigrate(t *testing.T) {
 		fmt.Printf("TestTryMigrate err: %v\n", err)
 	} else {
 		fmt.Printf("TestTryMigrate pass\n")
+	}
+}
+
+func TestMakeNameForService(t *testing.T) {
+	name := MakeNameForService("service.A1")
+	fmt.Println("new name: ", name)
+	if name == "service.A2" {
+		fmt.Println("pass")
+	} else {
+		t.Error("not pass")
 	}
 }

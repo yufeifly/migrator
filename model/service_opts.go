@@ -1,7 +1,8 @@
 package model
 
 type ServiceOpts struct {
-	ID          string
-	ServicePort string
-	Container   string
+	ID             string
+	ProxyServiceID string
+	ServicePort    string
+	Container      string
 }

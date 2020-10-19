@@ -10,23 +10,27 @@ import (
 )
 
 func ReceiveLog(c *gin.Context) {
-	var log model.Log
-	if err := c.ShouldBindJSON(&log); err != nil {
+	//ProxyServiceID := c.PostForm("Service")
+	//logrus.Infof("ProxyServiceID: %v", ProxyServiceID)
+	var logWithID model.LogWithServiceID
+	//var log model.Log
+	if err := c.ShouldBindJSON(&logWithID); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
-	logrus.Warnf("data to be consumed: %v", log)
-	serviceID := c.PostForm("Service")
+	logrus.Warnf("logWithID: %v", logWithID)
 
-	logJson, _ := json.Marshal(log)
+	logJson, _ := json.Marshal(logWithID.Log)
 
-	q := task.DefaultMapper.GetTaskQueue(serviceID)
+	q := task.DefaultMapper.GetTaskQueue(logWithID.ProxyServiceID)
 	if q == nil {
 		q := task.NewQueue()
-		task.DefaultMapper.AddTaskQueue(serviceID, q)
+		task.DefaultMapper.AddTaskQueue(logWithID.ProxyServiceID, q)
+		logrus.Warn("ReceiveLog: new a task queue")
 	}
 
-	if task.DefaultMapper.GetTaskQueue(serviceID) != nil {
-		task.DefaultMapper.GetTaskQueue(serviceID).Push(string(logJson)) // push a log to task queue
+	if task.DefaultMapper.GetTaskQueue(logWithID.ProxyServiceID) != nil {
+		logrus.Infof("push a log to queue, ProxyServiceID: %v", logWithID.ProxyServiceID)
+		task.DefaultMapper.GetTaskQueue(logWithID.ProxyServiceID).Push(string(logJson)) // push a log to task queue
 	} else {
 		logrus.Panic("task.NewQueue failed")
 	}

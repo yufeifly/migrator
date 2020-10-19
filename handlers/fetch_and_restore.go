@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/scheduler"
 	"github.com/yufeifly/migrator/task"
 	"github.com/yufeifly/migrator/utils"
 	"net/http"
@@ -17,14 +18,16 @@ import (
 // ReceiveCheckpointAndRestore get checkpoint from source node and restore from it
 func FetchCheckpointAndRestore(c *gin.Context) {
 	header := "migration.FetchCheckpointAndRestore"
-
+	// get params
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
-	cID := c.PostForm("ContainerID")
-	serviceID := c.PostForm("ServiceID")
+	cID := c.PostForm("ContainerID")         // of dst
+	serviceID := c.PostForm("ServiceID")     // of dst worker
+	servicePort := c.PostForm("ServicePort") // of src worker, also dst worker
+	proxyServiceID := c.PostForm("ProxyServiceID")
 
+	// checkpoint path
 	cpPath := cpDir + "/" + cpID // example: /tmp/cp1
-
 	logrus.WithFields(logrus.Fields{
 		"checkpoint path": cpPath,
 		"checkpointID":    cpID,
@@ -83,12 +86,22 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	// inform proxy it has started. request: proxy -> src -> dst, so the respond: dst -> src -> proxy
 	c.JSON(http.StatusOK, gin.H{"result": "success"})
 
+	// register a redis service
+	service := scheduler.NewService(model.ServiceOpts{
+		ID:             serviceID,
+		ProxyServiceID: proxyServiceID,
+		ServicePort:    servicePort,
+		Container:      cID,
+	})
+	scheduler.DefaultScheduler.AddService(service)
+	logrus.Infof("%s, AddService finished, new service: %v", header, service)
+
 	// consume logs
 	// todo but which log belongs to it?
 	logrus.Warn("going to consume logs")
 	go func() {
 		consumer := task.NewConsumer()
-		err := consumer.Consume(serviceID)
+		err := consumer.Consume(proxyServiceID)
 		if err != nil {
 			logrus.Panic(err)
 		}

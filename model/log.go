@@ -5,6 +5,11 @@ type Log struct {
 	LogQueue []string
 }
 
+type LogWithServiceID struct {
+	Log
+	ProxyServiceID string
+}
+
 func NewLog() *Log {
 	return &Log{
 		Last:     false,
