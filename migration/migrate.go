@@ -7,8 +7,7 @@ import (
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/scheduler"
-	"strconv"
-	"strings"
+	"github.com/yufeifly/migrator/utils"
 )
 
 // TryMigrate migrate redis service
@@ -137,8 +136,8 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		CheckPointDir: chOpts.CheckPointDir,
 		DestIP:        DestIP,
 		DestPort:      DestPort,
-		ContainerID:   containerID,                               // created in dst
-		ServiceID:     MakeNameForService(migrateOpts.ServiceID), // make a name for dst service based on src service name
+		ContainerID:   containerID,                                     // created in dst
+		ServiceID:     utils.MakeNameForService(migrateOpts.ServiceID), // make a name for dst service based on src service name
 		ServicePort:   service.ServicePort,
 		ProxyService:  ProxyServiceID,
 	}
@@ -149,17 +148,4 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 	}
 	logrus.Warn("PushCheckpoint finished")
 	return nil
-}
-
-func MakeNameForService(oldName string) string {
-	var newName string
-	dot := strings.Index(oldName, ".")
-	newName = oldName[:dot+2] + adder(oldName[dot+2:])
-	return newName
-}
-
-func adder(tail string) string {
-	num, _ := strconv.Atoi(tail)
-	num++
-	return strconv.Itoa(num)
 }

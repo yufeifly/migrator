@@ -17,6 +17,7 @@ func MigrateContainer(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
 
+	logrus.Infof("MigrateContainer.MigrateOpts: %v", migrateOpts)
 	err := migration.TryMigrate(migrateOpts)
 
 	if err != nil {
