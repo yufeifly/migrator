@@ -47,6 +47,9 @@ func main() {
 	// logger
 	r.POST("/logger", handlers.ReceiveLog)
 
+	// service
+	r.POST("/service/add", handlers.ServiceAdd)
+
 	// listen and serve on 0.0.0.0:6789 (for windows "localhost:8080")
 	if err := r.Run(":6789"); err != nil {
 		logrus.Errorf("gin.run err: %v", err)

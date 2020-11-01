@@ -2,15 +2,16 @@ package client
 
 import (
 	"bytes"
+
+	"github.com/levigross/grequests"
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/model"
-	"mime/multipart"
-	"net/http"
 )
 
+// SendContainerCreate send container create request to dst node
 func (cli *Client) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
 	header := "client.SendContainerCreate"
-	params := map[string]string{
+	data := map[string]string{
 		"ContainerName": opts.ContainerName,
 		"ImageName":     opts.ImageName,
 		"HostPort":      opts.HostPort,
@@ -19,50 +20,25 @@ func (cli *Client) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error)
 		"ExposedPorts":  opts.ExposedPorts,
 		"Cmd":           opts.Cmd,
 	}
-	destUrl := "http://" + opts.DestIP + ":" + opts.DestPort + "/container/create"
+
+	ro := &grequests.RequestOptions{
+		Data: data,
+	}
+	destUrl := "http://" + opts.IP + ":" + opts.Port + "/container/create"
 	logrus.WithFields(logrus.Fields{
 		"DestUrl": destUrl,
 	}).Info(header)
 
-	req, err := NewCreateRequest(destUrl, params)
+	resp, err := grequests.Post(destUrl, ro)
 	if err != nil {
-		logrus.Errorf("%s: NewCreateRequest err %v", header, err)
 		return nil, err
 	}
-	//
-	// client := &http.Client{}
-	resp, err := cli.Client.Do(req)
-	if err != nil {
-		logrus.Errorf("%s: get response err %v", header, err)
-		return nil, err
-	}
-
 	body := &bytes.Buffer{}
-	_, err = body.ReadFrom(resp.Body)
+	_, err = body.ReadFrom(resp.RawResponse.Body)
 	if err != nil {
 		logrus.Errorf("%s: read from response body err %v", header, err)
 		return nil, err
 	}
-
-	defer resp.Body.Close()
+	defer resp.RawResponse.Body.Close()
 	return body.Bytes(), nil
-}
-
-func NewCreateRequest(url string, params map[string]string) (*http.Request, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	for k, v := range params {
-		if err := writer.WriteField(k, v); err != nil {
-			return nil, err
-		}
-	}
-	if err := writer.Close(); err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest(http.MethodPost, url, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Content-Type", writer.FormDataContentType())
-	return req, err
 }

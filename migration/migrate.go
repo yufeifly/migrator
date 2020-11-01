@@ -10,19 +10,20 @@ import (
 	"github.com/yufeifly/migrator/utils"
 )
 
-// TryMigrate migrate redis service
-func TryMigrate(migrateOpts model.MigrateOpts) error {
+/*
+TryMigrate migrate redis service
+*/
+func TryMigrate(mOpts model.MigrateOpts) error {
 	header := "migration.TryMigrate"
 	// get params
-	//Container := migrateOpts.Container // to identify container in source node
-	ServiceID := migrateOpts.ServiceID //
-	ProxyServiceID := migrateOpts.ProxyService
-	CheckpointID := migrateOpts.CheckpointID
-	CheckpointDir := migrateOpts.CheckpointDir
-	DestIP := migrateOpts.IP     // the destination ip
-	DestPort := migrateOpts.Port // the destination port
+	ServiceID := mOpts.ServiceID         // real service id
+	ProxyServiceID := mOpts.ProxyService // proxy id
+	CheckpointID := mOpts.CheckpointID
+	CheckpointDir := mOpts.CheckpointDir
+	DestIP := mOpts.IP     // the destination ip
+	DestPort := mOpts.Port // the destination port
 
-	service, err := scheduler.DefaultScheduler.GetService(ServiceID)
+	service, err := scheduler.Default().GetService(ServiceID)
 	if err != nil {
 		logrus.Errorf("%s, scheduler.DefaultScheduler.GetService err: %v", header, err)
 		return err
@@ -37,11 +38,6 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 
 	// get image name of the container to be migrated
 	imageName := containerJson.Config.Image
-
-	// make the default checkpoint dir
-	if CheckpointDir == "" {
-		CheckpointDir = DefaultChkPDirPrefix + containerJson.ID
-	}
 
 	// 1 send container create request
 	// 1.1 get container's cmd in source node
@@ -85,8 +81,6 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		}).Debug("ExposedPorts")
 	}
 
-	//cli := client.Client{}
-	cli := client.NewClient()
 	createReqOpts := model.CreateReqOpts{
 		CreateOpts: model.CreateOpts{
 			ContainerName: "", // todo give dest container a nice name,empty string means a random name
@@ -97,10 +91,12 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 			ExposedPorts:  ExposedPortsStr,
 			Cmd:           CmdStr,
 		},
-		DestIP:   DestIP,
-		DestPort: DestPort,
+		Address: model.Address{
+			IP:   DestIP,
+			Port: DestPort,
+		},
 	}
-
+	cli := client.NewClient()
 	rawResp, err := cli.SendContainerCreate(createReqOpts) // send to dst
 	if err != nil {
 		logrus.Errorf("%s, SendContainerCreate err: %v", header, err)
@@ -118,6 +114,10 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 	}).Debug("container on dest node created")
 
 	// 2 create a checkpoint
+	// make the default checkpoint dir
+	if CheckpointDir == "" {
+		CheckpointDir = DefaultChkPDirPrefix + containerJson.ID
+	}
 	chOpts := model.CheckpointOpts{
 		Container:     service.ContainerID,
 		CheckPointID:  CheckpointID,
@@ -136,8 +136,8 @@ func TryMigrate(migrateOpts model.MigrateOpts) error {
 		CheckPointDir: chOpts.CheckPointDir,
 		DestIP:        DestIP,
 		DestPort:      DestPort,
-		ContainerID:   containerID,                                     // created in dst
-		ServiceID:     utils.MakeNameForService(migrateOpts.ServiceID), // make a name for dst service based on src service name
+		ContainerID:   containerID,                          // created in dst
+		ServiceID:     utils.RenameService(mOpts.ServiceID), // make a name for dst service based on src service name
 		ServicePort:   service.ServicePort,
 		ProxyService:  ProxyServiceID,
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 func TestMakeNameForService(t *testing.T) {
-	name := MakeNameForService("service.A1")
+	name := RenameService("service.A1")
 	fmt.Println("new name: ", name)
 	if name == "service.A2" {
 		fmt.Println("pass")

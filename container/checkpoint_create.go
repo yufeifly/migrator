@@ -14,7 +14,7 @@ func CreateCheckpoint(checkpointOpts model.CheckpointOpts) error {
 	chOpts := types.CheckpointCreateOptions{
 		CheckpointID:  checkpointOpts.CheckPointID,
 		CheckpointDir: checkpointOpts.CheckPointDir,
-		Exit:          true, // todo this should be set by user
+		Exit:          false, // todo this should be set by user
 	}
 
 	// delete the checkpoint dir if it exist

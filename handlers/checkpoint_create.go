@@ -24,7 +24,5 @@ func CheckpointCreate(c *gin.Context) {
 		logrus.Panic(err)
 	}
 
-	c.JSON(200, gin.H{
-		"migrate": "success",
-	})
+	c.JSON(200, gin.H{"migrate": "success"})
 }

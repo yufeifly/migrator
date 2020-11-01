@@ -72,11 +72,11 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	time.Sleep(500 * time.Millisecond)
 	// 2 start the container
 	startOpts := model.StartOpts{
+		ContainerID: cID,
 		CStartOpts: types.ContainerStartOptions{
 			CheckpointID:  cpID,
 			CheckpointDir: cpDir,
 		},
-		ContainerID: cID,
 	}
 	err = container.StartContainer(startOpts)
 	if err != nil {

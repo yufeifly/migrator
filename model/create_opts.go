@@ -8,5 +8,9 @@ type CreateOpts struct {
 	PortBindings  string
 	ExposedPorts  string
 	Cmd           string
-	//DestIP        string // for sending create request
+}
+
+type CreateReqOpts struct {
+	CreateOpts
+	Address
 }

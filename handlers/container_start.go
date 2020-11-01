@@ -23,11 +23,11 @@ func Start(c *gin.Context) {
 	}
 
 	startOpts := model.StartOpts{
+		ContainerID: containerID,
 		CStartOpts: types.ContainerStartOptions{
 			CheckpointID:  checkpointID,
 			CheckpointDir: checkpointDir,
 		},
-		ContainerID: containerID,
 	}
 
 	err := container.StartContainer(startOpts)

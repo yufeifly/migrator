@@ -19,6 +19,11 @@ func NewScheduler() *Scheduler {
 	return &Scheduler{}
 }
 
+// Default get default scheduler
+func Default() *Scheduler {
+	return DefaultScheduler
+}
+
 func (s *Scheduler) AddService(service *Service) {
 	s.Map.Store(service.ID, service)
 }

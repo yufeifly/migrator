@@ -21,8 +21,10 @@ func TestCli_SendContainerCreate(t *testing.T) {
 			ContainerPort: "",
 			Cmd:           string(cmd),
 		},
-		DestIP:   "127.0.0.1",
-		DestPort: "6789",
+		Address: model.Address{
+			IP:   "127.0.0.1",
+			Port: "6789",
+		},
 	}
 	got, err := c.SendContainerCreate(opts)
 	if err != nil {

@@ -26,6 +26,7 @@ func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBod
 		config.Cmd = cmd
 	}
 
+	openPort, _ := nat.NewPort("tcp", opts.ContainerPort)
 	if opts.ExposedPorts != "" {
 		exposedPorts := nat.PortSet{}
 		err := json.Unmarshal([]byte(opts.ExposedPorts), &exposedPorts)
@@ -34,6 +35,11 @@ func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBod
 			return container.ContainerCreateCreatedBody{}, err
 		}
 		config.ExposedPorts = exposedPorts
+	} else if opts.ContainerPort != "" {
+
+		config.ExposedPorts = nat.PortSet{
+			openPort: struct{}{}, //docker容器对外开放的端口
+		}
 	}
 
 	hostConfig := &container.HostConfig{}
@@ -45,6 +51,13 @@ func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBod
 			return container.ContainerCreateCreatedBody{}, err
 		}
 		hostConfig.PortBindings = portBindings
+	} else if opts.HostPort != "" {
+		hostConfig.PortBindings = nat.PortMap{
+			openPort: []nat.PortBinding{nat.PortBinding{
+				HostIP:   "0.0.0.0",     //docker容器映射的宿主机的ip
+				HostPort: opts.HostPort, //docker 容器映射到宿主机的端口
+			}},
+		}
 	}
 
 	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, opts.ContainerName)
