@@ -7,7 +7,7 @@ import (
 )
 
 // RunContainer
-func RunContainer(opts model.RunOpts) error {
+func RunContainer(opts model.RunOpts) (string, error) {
 	header := "container.RunContainer"
 	out, err := cli.ImagePull(ctx, opts.ImageName, types.ImagePullOptions{})
 	if err != nil {
@@ -32,5 +32,5 @@ func RunContainer(opts model.RunOpts) error {
 		logrus.Panic(err)
 	}
 	logrus.Infof("container id: %v", resp.ID)
-	return nil
+	return resp.ID, nil
 }

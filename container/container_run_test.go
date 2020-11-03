@@ -7,7 +7,7 @@ import (
 )
 
 func TestRunContainer(t *testing.T) {
-	err := RunContainer(model.RunOpts{
+	_, err := RunContainer(model.RunOpts{
 		ImageName:     "docker.io/library/redis",
 		HostPort:      "8998",
 		ContainerPort: "8998",

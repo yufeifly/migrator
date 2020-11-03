@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// RenameService give the service a new name,
 func RenameService(oldName string) string {
 	var newName string
 	dot := strings.Index(oldName, ".")
@@ -12,6 +13,7 @@ func RenameService(oldName string) string {
 	return newName
 }
 
+// adder service tail index add one
 func adder(tail string) string {
 	num, _ := strconv.Atoi(tail)
 	num++

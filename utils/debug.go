@@ -5,13 +5,14 @@ import (
 	"os"
 )
 
+// EnableDebug
 func EnableDebug() {
 	os.Setenv("DEBUG", "1")
 	logrus.SetLevel(logrus.DebugLevel)
 }
 
-// DisableDebug sets the DEBUG env var to false
-// and makes the logger to log at info level.
+/* DisableDebug sets the DEBUG env var to false
+and makes the logger to log at info level.*/
 func DisableDebug() {
 	os.Setenv("DEBUG", "")
 	logrus.SetLevel(logrus.InfoLevel)

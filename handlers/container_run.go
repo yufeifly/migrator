@@ -6,6 +6,7 @@ import (
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 func Run(c *gin.Context) {
@@ -19,10 +20,10 @@ func Run(c *gin.Context) {
 		ContainerPort: ContainerPort,
 	}
 
-	err := container.RunContainer(runOpts)
+	containerID, err := container.RunContainer(runOpts)
 	if err != nil {
 		utils.ReportErr(c, err)
 		logrus.Panic(err)
 	}
-	c.JSON(200, gin.H{"docker run": "success"})
+	c.JSON(http.StatusOK, gin.H{"containerID": containerID})
 }
