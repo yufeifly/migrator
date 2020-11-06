@@ -102,7 +102,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	logrus.Warn("going to consume logs")
 	go func() {
 		consumer := task.NewConsumer()
-		err := consumer.Consume(proxyServiceID)
+		err := consumer.Consume(proxyServiceID, serviceID)
 		if err != nil {
 			logrus.Panic(err)
 		}

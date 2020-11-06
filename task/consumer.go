@@ -22,7 +22,7 @@ func NewConsumer() *Consumer {
 }
 
 // Consume consume a log in task queue
-func (c *Consumer) Consume(ProxyServiceID string) error {
+func (c *Consumer) Consume(ProxyServiceID, serviceID string) error {
 	logrus.Infof("Consume ProxyServiceID: %v", ProxyServiceID)
 	cli := client.NewClient()
 
@@ -37,8 +37,15 @@ func (c *Consumer) Consume(ProxyServiceID string) error {
 	for {
 		//fmt.Println("queue: ", DefaultQueue)
 		logrus.Info("tick")
+		// check if service started
+		//_, err := scheduler.Default().GetService(ProxyServiceID)
+		//if err != nil {
+		//	time.Sleep(1000 * time.Millisecond)
+		//	continue
+		//}
 		// get logs from the right queue
 		taskJson := DefaultMapper.GetTaskQueue(ProxyServiceID).PopFront()
+		// check if there are logs
 		if taskJson == "" {
 			time.Sleep(1000 * time.Millisecond)
 			continue
@@ -53,7 +60,11 @@ func (c *Consumer) Consume(ProxyServiceID string) error {
 			for _, kv := range task.GetLogQueue() {
 				var sli []string
 				json.Unmarshal([]byte(kv), &sli)
-				redis.Set("service1", sli[0], sli[1])
+				logrus.Infof("the slice: %v", sli)
+				err := redis.Set(serviceID, sli[0], sli[1]) // fixme something is wrong with service1
+				if err != nil {
+					logrus.Errorf("redis.set err: %v", err)
+				}
 			}
 		}
 
