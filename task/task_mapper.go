@@ -26,6 +26,7 @@ func (m *Mapper) AddTaskQueue(ProxyServiceID string, q *Queue) {
 	m.Unlock()
 }
 
+// GetTaskQueue get task queue for a ProxyService
 func (m *Mapper) GetTaskQueue(ProxyServiceID string) *Queue {
 	que, ok := m.Map.Load(ProxyServiceID)
 	if !ok {

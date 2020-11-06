@@ -10,9 +10,9 @@ import (
 
 // CheckpointCreate handler for create a checkpoint for a container
 func CheckpointCreate(c *gin.Context) {
-	Container := c.Query("container")
-	CheckpointID := c.Query("checkpointID")
-	CheckpointDIR := c.Query("checkpointDIR")
+	Container := c.PostForm("container")
+	CheckpointID := c.PostForm("checkpointID")
+	CheckpointDIR := c.PostForm("checkpointDIR")
 
 	cpOpts := model.CheckpointOpts{
 		Container:     Container,

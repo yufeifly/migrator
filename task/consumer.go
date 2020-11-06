@@ -65,7 +65,7 @@ func (c *Consumer) Consume(ProxyServiceID string) error {
 		// consumed a log, send this message to src
 		logrus.Infof("consumed a log, msg send to src")
 		//time.Sleep(200 * time.Millisecond)
-		err = cli.ConsumeAdder()
+		err = cli.ConsumedAdder(ProxyServiceID)
 		if err != nil {
 			logrus.Errorf("cli.consumed failed, err: %v", err)
 			return err

@@ -14,5 +14,4 @@ func GetRandomPort() (string, error) {
 	port := l.Addr().(*net.TCPAddr).Port
 
 	return strconv.Itoa(port), nil
-
 }

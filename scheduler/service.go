@@ -37,8 +37,8 @@ func PseudoRegister() {
 	opts1 := model.ServiceOpts{
 		ID:             "service1.1",
 		ProxyServiceID: "service1",
-		ServicePort:    "6380",
-		Container:      "7feb6de27ece",
+		ServicePort:    "39955",
+		Container:      "4a8ea05ca82c",
 	}
 	DefaultScheduler.AddService(NewService(opts1))
 

@@ -35,5 +35,5 @@ func ReceiveLog(c *gin.Context) {
 		logrus.Panic("task.NewQueue failed")
 	}
 
-	c.JSON(200, "log received")
+	c.JSON(http.StatusOK, "log received")
 }

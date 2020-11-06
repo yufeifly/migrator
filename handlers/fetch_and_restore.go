@@ -78,6 +78,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 			CheckpointDir: cpDir,
 		},
 	}
+	logrus.Infof("startOpts: %v", startOpts)
 	err = container.StartContainer(startOpts)
 	if err != nil {
 		logrus.Errorf("%s, start container err: %v", header, err)

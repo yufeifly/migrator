@@ -6,9 +6,13 @@ import (
 )
 
 // ConsumeAdder tell the proxy that I(dst) has consumed a log
-func (cli *Client) ConsumeAdder() error {
+func (cli *Client) ConsumedAdder(proxyService string) error {
 	header := "client.ConsumeAdder"
-	ro := &grequests.RequestOptions{}
+	data := make(map[string]string)
+	data["ProxyServiceID"] = proxyService
+	ro := &grequests.RequestOptions{
+		Data: data,
+	}
 	url := "http://127.0.0.1:6788/log/consume"
 	_, err := grequests.Post(url, ro)
 	if err != nil {
