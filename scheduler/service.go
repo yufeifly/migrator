@@ -38,7 +38,7 @@ func PseudoRegister() {
 		ID:             "service1.1",
 		ProxyServiceID: "service1",
 		ServicePort:    "39955",
-		Container:      "c90dae6f54b1",
+		Container:      "ad91861d049d",
 	}
 	DefaultScheduler.AddService(NewService(opts1))
 

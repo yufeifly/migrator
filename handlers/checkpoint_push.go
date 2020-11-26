@@ -7,17 +7,18 @@ import (
 	"github.com/yufeifly/migrator/migration"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 // todo
 func CheckpointPush(c *gin.Context) {
 	header := "migration.CheckpointPush"
 
-	containerName := c.Query("container")
-	checkpointID := c.Query("checkpointID")
-	destIP := c.Query("destIP")
-	destPort := c.Query("destPort")
-	checkpointDir := c.Query("checkpointDir")
+	containerName := c.PostForm("container")
+	checkpointID := c.PostForm("checkpointID")
+	destIP := c.PostForm("destIP")
+	destPort := c.PostForm("destPort")
+	checkpointDir := c.PostForm("checkpointDir")
 
 	containerJson, err := container.Inspect(containerName)
 	if err != nil {
@@ -43,5 +44,5 @@ func CheckpointPush(c *gin.Context) {
 		logrus.Panic(err)
 	}
 
-	c.JSON(200, gin.H{"result": "success"})
+	c.JSON(http.StatusOK, gin.H{"result": "success"})
 }

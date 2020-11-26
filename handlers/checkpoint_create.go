@@ -6,6 +6,7 @@ import (
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 // CheckpointCreate handler for create a checkpoint for a container
@@ -24,5 +25,5 @@ func CheckpointCreate(c *gin.Context) {
 		logrus.Panic(err)
 	}
 
-	c.JSON(200, gin.H{"migrate": "success"})
+	c.JSON(http.StatusOK, gin.H{"CheckpointCreate": "success"})
 }
