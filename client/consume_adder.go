@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/levigross/grequests"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/cluster"
 )
 
 // ConsumeAdder tell the proxy that I(dst) has consumed a log
@@ -13,7 +14,9 @@ func (cli *Client) ConsumedAdder(proxyService string) error {
 	ro := &grequests.RequestOptions{
 		Data: data,
 	}
-	url := "http://127.0.0.1:6788/log/consume"
+
+	node := cluster.Cluster().GetProxy()
+	url := "http://" + node.IP + ":" + node.Port + "/log/consume"
 	_, err := grequests.Post(url, ro)
 	if err != nil {
 		logrus.Errorf("%s: post err %v", header, err)
