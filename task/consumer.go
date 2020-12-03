@@ -42,7 +42,7 @@ func (c *Consumer) Consume(ProxyServiceID, serviceID string) error {
 		taskJson := DefaultMapper.GetTaskQueue(ProxyServiceID).PopFront()
 		// check if there are logs
 		if taskJson == "" {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			continue
 		}
 		// unmarshall get serialized kv
