@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 	"strconv"
 	"time"
 )
@@ -35,5 +36,5 @@ func Stop(c *gin.Context) {
 		"ContainerID": ContainerID,
 	}).Info("the container has been stopped")
 
-	c.JSON(200, gin.H{"result": "success"})
+	c.JSON(http.StatusOK, gin.H{"result": "success"})
 }
