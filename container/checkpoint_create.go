@@ -3,13 +3,18 @@ package container
 import (
 	"github.com/docker/docker/api/types"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
 	"os"
 )
 
+type CheckpointReqOpts struct {
+	Container     string
+	CheckPointID  string
+	CheckPointDir string
+}
+
 //CreateCheckpoint create a checkpoint for a container
-func CreateCheckpoint(checkpointOpts model.CheckpointOpts) error {
+func CreateCheckpoint(checkpointOpts CheckpointReqOpts) error {
 	header := "container.CreateCheckpoint"
 	chOpts := types.CheckpointCreateOptions{
 		CheckpointID:  checkpointOpts.CheckPointID,
@@ -28,7 +33,7 @@ func CreateCheckpoint(checkpointOpts model.CheckpointOpts) error {
 	}
 
 	//
-	err := cli.CheckpointCreate(ctx, checkpointOpts.Container, chOpts)
+	err := dockerCli.CheckpointCreate(ctx, checkpointOpts.Container, chOpts)
 	if err != nil {
 		logrus.Errorf("%s, CheckpointCreate err: %v", header, err)
 	}

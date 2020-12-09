@@ -2,17 +2,17 @@ package migration
 
 import (
 	"fmt"
-	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/api/types"
 	"testing"
 )
 
 func TestTryMigrate(t *testing.T) {
-	migrateOpts := model.MigrateOpts{
+	migrateOpts := MigrateOpts{
 		//Container:     "9f42f4547a45", // to identify the container in source node
 		ServiceID:     "",
 		CheckpointID:  "cp-redis",
 		CheckpointDir: "/tmp",
-		Address: model.Address{
+		Address: types.Address{
 			IP:   "127.0.0.1",
 			Port: "6789",
 		},

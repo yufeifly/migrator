@@ -23,7 +23,7 @@ func CheckpointPush(c *gin.Context) {
 	containerJson, err := container.Inspect(containerName)
 	if err != nil {
 		logrus.Errorf("%s, inspect container err: %v", header, err)
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panic(err)
 	}
 	// get default dir to store checkpoint
@@ -40,7 +40,7 @@ func CheckpointPush(c *gin.Context) {
 	}
 	err = migration.PushCheckpoint(PushOpts)
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panic(err)
 	}
 

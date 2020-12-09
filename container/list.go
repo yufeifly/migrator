@@ -6,7 +6,7 @@ import (
 
 // ListContainers
 func ListContainers(opts types.ContainerListOptions) ([]types.Container, error) {
-	containers, err := cli.ContainerList(ctx, opts)
+	containers, err := dockerCli.ContainerList(ctx, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,6 @@ package migration
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/utils"
-
 	"github.com/yufeifly/migrator/model"
 	"io"
 	"io/ioutil"
@@ -16,11 +14,11 @@ import (
 
 var logger = logrus.New()
 
-func init() {
-	if utils.IsDebugEnabled() {
-		logger.SetLevel(logrus.DebugLevel)
-	}
-}
+//func init() {
+//	if utils.IsDebugEnabled() {
+//		logger.SetLevel(logrus.DebugLevel)
+//	}
+//}
 
 // PushCheckpoint push checkpoint to destination and deliver restore request
 func PushCheckpoint(migOpts model.PushOpts) error {
@@ -107,7 +105,7 @@ func newFileUploadRequest(url string, cpPath string, paths []string, params map[
 		}
 	}
 
-	// 其他参数列表写入 body
+	// other params write to body
 	for k, v := range params {
 		if err := writer.WriteField(k, v); err != nil {
 			logrus.WithFields(logrus.Fields{
@@ -144,7 +142,7 @@ func getFilesFromCheckpoint(pathname string) ([]string, error) {
 	}
 	for _, fi := range rd {
 		if fi.IsDir() {
-			// ignore files in dir criu.work/restore-...
+			// ignore files in dir criu.work, e.g. restore-...
 			if restoreDir(fi.Name()) {
 				continue
 			}

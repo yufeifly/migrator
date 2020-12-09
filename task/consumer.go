@@ -3,7 +3,9 @@ package task
 import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/client"
+	"github.com/yufeifly/migrator/cluster"
 	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/redis"
 	"time"
@@ -24,7 +26,8 @@ func NewConsumer() *Consumer {
 // Consume consume a log in task queue
 func (c *Consumer) Consume(ProxyServiceID, serviceID string) error {
 	logrus.Debugf("Consume ProxyServiceID: %v", ProxyServiceID)
-	cli := client.NewClient()
+	proxy := cluster.Cluster().GetProxy()
+	cli := client.NewClient(types.Address(proxy.Address))
 
 	q := DefaultMapper.GetTaskQueue(ProxyServiceID)
 	if q == nil {
@@ -62,20 +65,16 @@ func (c *Consumer) Consume(ProxyServiceID, serviceID string) error {
 				}
 			}
 		}
-
 		// stop this goroutine if it is the last task
 		if task.GetLastFlag() {
 			logrus.Warn("the last log consumed")
 			return nil
 		}
-		// consumed a log, send this message to src
-		logrus.Infof("consumed a log, msg send to src")
-		//time.Sleep(200 * time.Millisecond)
+		logrus.Infof("consumed a log, send msg to src")
 		err = cli.ConsumedAdder(ProxyServiceID)
 		if err != nil {
 			logrus.Errorf("cli.consumed failed, err: %v", err)
 			return err
 		}
 	}
-	return nil
 }

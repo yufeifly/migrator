@@ -1,13 +1,23 @@
 package client
 
-import "net/http"
+import (
+	"github.com/yufeifly/migrator/api/types"
+	"net/http"
+)
 
-type Client struct {
-	Client *http.Client
+type APIClient interface {
+	SendContainerCreate(options types.CreateReqOpts) ([]byte, error)
+	ConsumedAdder(proxyService string) error
 }
 
-func NewClient() *Client {
-	return &Client{
-		Client: &http.Client{},
+type client struct {
+	addr       types.Address
+	httpClient *http.Client
+}
+
+func NewClient(address types.Address) APIClient {
+	return &client{
+		addr:       address,
+		httpClient: &http.Client{},
 	}
 }

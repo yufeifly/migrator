@@ -17,18 +17,18 @@ func ServiceAdd(c *gin.Context) {
 	// choose a service port
 	servicePort, err := utils.GetRandomPort()
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panic(err)
 	}
 	// start a worker container
-	rOpts := model.RunOpts{
+	rOpts := container.RunOpts{
 		ImageName:     "docker.io/library/redis",
 		HostPort:      servicePort,
 		ContainerPort: servicePort,
 	}
 	containerID, err := container.RunContainer(rOpts)
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panic(err)
 	}
 

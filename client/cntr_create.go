@@ -2,29 +2,29 @@ package client
 
 import (
 	"bytes"
+	"github.com/yufeifly/migrator/api/types"
 
 	"github.com/levigross/grequests"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/model"
 )
 
 // SendContainerCreate send container create request to dst node
-func (cli *Client) SendContainerCreate(opts model.CreateReqOpts) ([]byte, error) {
+func (cli *client) SendContainerCreate(options types.CreateReqOpts) ([]byte, error) {
 	header := "client.SendContainerCreate"
 	data := map[string]string{
-		"ContainerName": opts.ContainerName,
-		"ImageName":     opts.ImageName,
-		"HostPort":      opts.HostPort,
-		"ContainerPort": opts.ContainerPort,
-		"PortBindings":  opts.PortBindings,
-		"ExposedPorts":  opts.ExposedPorts,
-		"Cmd":           opts.Cmd,
+		"ContainerName": options.ContainerName,
+		"ImageName":     options.ImageName,
+		"HostPort":      options.HostPort,
+		"ContainerPort": options.ContainerPort,
+		"PortBindings":  options.PortBindings,
+		"ExposedPorts":  options.ExposedPorts,
+		"Cmd":           options.Cmd,
 	}
 
 	ro := &grequests.RequestOptions{
 		Data: data,
 	}
-	destUrl := "http://" + opts.IP + ":" + opts.Port + "/container/create"
+	destUrl := "http://" + options.IP + ":" + options.Port + "/container/create"
 	logrus.WithFields(logrus.Fields{
 		"DestUrl": destUrl,
 	}).Info(header)

@@ -3,6 +3,7 @@ package migration
 import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/client"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/model"
@@ -10,10 +11,17 @@ import (
 	"github.com/yufeifly/migrator/utils"
 )
 
-/*
-TryMigrate migrate redis service
-*/
-func TryMigrate(mOpts model.MigrateOpts) error {
+// MigrateOpts
+type MigrateOpts struct {
+	types.Address
+	ServiceID     string
+	ProxyService  string
+	CheckpointID  string
+	CheckpointDir string
+}
+
+// TryMigrate migrate redis service
+func TryMigrate(mOpts MigrateOpts) error {
 	header := "migration.TryMigrate"
 	// get params
 	ServiceID := mOpts.ServiceID         // real service id
@@ -22,28 +30,27 @@ func TryMigrate(mOpts model.MigrateOpts) error {
 	CheckpointDir := mOpts.CheckpointDir
 	DestIP := mOpts.IP     // the destination ip
 	DestPort := mOpts.Port // the destination port
-
+	// get real service
 	service, err := scheduler.Default().GetService(ServiceID)
 	if err != nil {
 		logrus.Errorf("%s, scheduler.DefaultScheduler.GetService err: %v", header, err)
 		return err
 	}
-
 	// get all infos of a container
-	containerJson, err := container.Inspect(service.ContainerID)
+	containerJSON, err := container.Inspect(service.ContainerID)
 	if err != nil {
-		logrus.Errorf("%s, inspect err: %v", header, err)
+		logrus.Errorf("%s, container.Inspect err: %v", header, err)
 		return err
 	}
 
 	// get image name of the container to be migrated
-	imageName := containerJson.Config.Image
+	imageName := containerJSON.Config.Image
 
 	// 1 send container create request
 	// 1.1 get container's cmd in source node
 	var CmdStr string
-	if containerJson.Config.Cmd != nil {
-		cmd, err := json.Marshal(containerJson.Config.Cmd)
+	if containerJSON.Config.Cmd != nil {
+		cmd, err := json.Marshal(containerJSON.Config.Cmd)
 		if err != nil {
 			logrus.Errorf("%s, marshal cmd err: %v", header, err)
 			return err
@@ -51,39 +58,40 @@ func TryMigrate(mOpts model.MigrateOpts) error {
 		CmdStr = string(cmd)
 		logrus.WithFields(logrus.Fields{
 			"cmd": CmdStr,
-		}).Debug("command to send")
+		}).Debug("command of docker")
 	}
 
 	// 1.2 get container's port map in source node
 	var PortBindingsStr string
-	portBindings := containerJson.HostConfig.PortBindings
+	portBindings := containerJSON.HostConfig.PortBindings
 	if portBindings != nil {
-		pbJson, err := json.Marshal(portBindings)
+		pbJSON, err := json.Marshal(portBindings)
 		if err != nil {
+			logrus.Errorf("%s, marshal portBindings err: %v", header, err)
 			return err
 		}
-		PortBindingsStr = string(pbJson)
+		PortBindingsStr = string(pbJSON)
 		logrus.WithFields(logrus.Fields{
 			"PortBindings": PortBindingsStr,
 		}).Debug("PortBindings")
 	}
 
 	var ExposedPortsStr string
-	exposedPorts := containerJson.Config.ExposedPorts
+	exposedPorts := containerJSON.Config.ExposedPorts
 	if exposedPorts != nil {
-		epJson, err := json.Marshal(exposedPorts)
+		epJSON, err := json.Marshal(exposedPorts)
 		if err != nil {
 			return err
 		}
-		ExposedPortsStr = string(epJson)
+		ExposedPortsStr = string(epJSON)
 		logrus.WithFields(logrus.Fields{
 			"ExposedPorts": ExposedPortsStr,
 		}).Debug("ExposedPorts")
 	}
 
-	createReqOpts := model.CreateReqOpts{
-		CreateOpts: model.CreateOpts{
-			ContainerName: "", // todo give dest container a nice name,empty string means a random name
+	createReqOpts := types.CreateReqOpts{
+		CreateOpts: types.CreateOpts{
+			ContainerName: "", // empty string means a random name
 			ImageName:     imageName,
 			HostPort:      "", // empty string
 			ContainerPort: "", // empty string
@@ -91,12 +99,15 @@ func TryMigrate(mOpts model.MigrateOpts) error {
 			ExposedPorts:  ExposedPortsStr,
 			Cmd:           CmdStr,
 		},
-		Address: model.Address{
+		Address: types.Address{
 			IP:   DestIP,
 			Port: DestPort,
 		},
 	}
-	cli := client.NewClient()
+	cli := client.NewClient(types.Address{
+		IP:   DestIP,
+		Port: DestPort,
+	})
 	rawResp, err := cli.SendContainerCreate(createReqOpts) // send to dst
 	if err != nil {
 		logrus.Errorf("%s, SendContainerCreate err: %v", header, err)
@@ -116,9 +127,9 @@ func TryMigrate(mOpts model.MigrateOpts) error {
 	// 2 create a checkpoint
 	// make the default checkpoint dir
 	if CheckpointDir == "" {
-		CheckpointDir = DefaultChkPDirPrefix + containerJson.ID
+		CheckpointDir = DefaultChkPDirPrefix + containerJSON.ID
 	}
-	chOpts := model.CheckpointOpts{
+	chOpts := container.CheckpointReqOpts{
 		Container:     service.ContainerID,
 		CheckPointID:  CheckpointID,
 		CheckPointDir: CheckpointDir,

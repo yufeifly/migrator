@@ -5,11 +5,11 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/api/types"
 )
 
 // CreateContainer create a container
-func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBody, error) {
+func CreateContainer(opts types.CreateOpts) (container.ContainerCreateCreatedBody, error) {
 	header := "container.CreateContainer"
 
 	config := &container.Config{
@@ -60,7 +60,7 @@ func CreateContainer(opts model.CreateOpts) (container.ContainerCreateCreatedBod
 		}
 	}
 
-	body, err := cli.ContainerCreate(ctx, config, hostConfig, nil, opts.ContainerName)
+	body, err := dockerCli.ContainerCreate(ctx, config, hostConfig, nil, opts.ContainerName)
 	if err != nil {
 		return container.ContainerCreateCreatedBody{}, err
 	}

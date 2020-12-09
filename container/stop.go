@@ -8,7 +8,7 @@ import (
 // StopContainer stop the container
 func StopContainer(ContainerID string, timeout *time.Duration) error {
 	header := "container.StopContainer"
-	err := cli.ContainerStop(ctx, ContainerID, timeout)
+	err := dockerCli.ContainerStop(ctx, ContainerID, timeout)
 	if err != nil {
 		logrus.Errorf("%s, start container failed, err: %v", header, err)
 		return err

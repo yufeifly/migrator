@@ -4,18 +4,12 @@ import (
 	"sync"
 )
 
-//var DefaultQueue *Queue
-
 type Queue struct {
 	Q        []string
 	TaskLeft int // current task number
 	TotalNum int // task consumed
 	sync.Mutex
 }
-
-//func init() {
-//	DefaultQueue = NewQueue()
-//}
 
 func NewQueue() *Queue {
 	return &Queue{

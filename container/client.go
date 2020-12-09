@@ -7,15 +7,13 @@ import (
 	"github.com/docker/docker/client"
 )
 
-var (
-	cli *client.Client
-)
+var dockerCli *client.Client
 
 var ctx = context.Background()
 
 func init() {
 	var err error
-	cli, err = client.NewEnvClient()
+	dockerCli, err = client.NewEnvClient()
 	if err != nil {
 		logrus.Panic(err)
 	}

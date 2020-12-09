@@ -2,18 +2,17 @@ package container
 
 import (
 	"fmt"
-	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/api/types"
 	"testing"
 )
 
 func TestCreateContainer(t *testing.T) {
-	createOpts := model.CreateOpts{
+	createOpts := types.CreateOpts{
 		ContainerName: "",
 		ImageName:     "",
 		HostPort:      "",
 		ContainerPort: "",
 		Cmd:           "",
-		//DestIP:        "",
 	}
 	_, err := CreateContainer(createOpts)
 	if err != nil {

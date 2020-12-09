@@ -71,7 +71,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	// 1 todo check if container created
 	time.Sleep(500 * time.Millisecond)
 	// 2 start the container
-	startOpts := model.StartOpts{
+	startOpts := container.StartOpts{
 		ContainerID: cID,
 		CStartOpts: types.ContainerStartOptions{
 			CheckpointID:  cpID,

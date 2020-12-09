@@ -21,7 +21,7 @@ func List(c *gin.Context) {
 
 	containers, err := container.ListContainers(listOpts)
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panicf("%s, container.ListContainers panic: %v", header, err)
 	}
 

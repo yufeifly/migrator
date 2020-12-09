@@ -3,30 +3,33 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/api/types"
 	"testing"
 )
 
 func TestCli_SendContainerCreate(t *testing.T) {
-	c := Client{}
+	cli := NewClient(types.Address{
+		IP:   "127.0.0.1",
+		Port: "6789",
+	})
 	cmdSlice := []string{"/bin/sh", "-c", "i=0; while true; do echo $i; i=$(expr $i + 1); sleep 1; done"}
 	cmd, err := json.Marshal(&cmdSlice)
 	fmt.Printf("cmd: %v\n", string(cmd))
 
-	opts := model.CreateReqOpts{
-		CreateOpts: model.CreateOpts{
+	opts := types.CreateReqOpts{
+		CreateOpts: types.CreateOpts{
 			ContainerName: "bb22",
 			ImageName:     "busybox",
 			HostPort:      "",
 			ContainerPort: "",
 			Cmd:           string(cmd),
 		},
-		Address: model.Address{
+		Address: types.Address{
 			IP:   "127.0.0.1",
 			Port: "6789",
 		},
 	}
-	got, err := c.SendContainerCreate(opts)
+	got, err := cli.SendContainerCreate(opts)
 	if err != nil {
 		fmt.Println("err: ", err)
 	} else {

@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// get a random port which is available
+// GetRandomPort get a random port which is available
 func GetRandomPort() (string, error) {
 	l, err := net.Listen("tcp", ":0")
 	if err != nil {

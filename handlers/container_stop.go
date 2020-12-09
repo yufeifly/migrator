@@ -28,7 +28,7 @@ func Stop(c *gin.Context) {
 	//err := cli.ContainerStop(ctx, ContainerID, &timeout)
 	err := container.StopContainer(ContainerID, timeout)
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		panic(err)
 	}
 

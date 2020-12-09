@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/redis"
+	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 // Get redis get handler
@@ -16,9 +18,9 @@ func Get(c *gin.Context) {
 	val, err := redis.Get(serviceID, key)
 	if err != nil {
 		logrus.Errorf("%s, err: %v", header, err)
-		c.JSON(200, gin.H{"failed: ": val})
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 	} else {
-		c.JSON(200, val)
+		c.JSON(http.StatusOK, val)
 	}
 }
 
@@ -39,8 +41,8 @@ func Set(c *gin.Context) {
 			"key":   key,
 			"value": val,
 		}).Error("set pair failed")
-		c.JSON(200, gin.H{"err": err})
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 	} else {
-		c.JSON(200, gin.H{"result": "success"})
+		c.JSON(http.StatusOK, gin.H{"result": "success"})
 	}
 }

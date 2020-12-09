@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
 	"net/http"
 )
@@ -14,7 +13,7 @@ func Run(c *gin.Context) {
 	HostPort := c.Query("HostPort")
 	ContainerPort := c.Query("ContainerPort")
 
-	runOpts := model.RunOpts{
+	runOpts := container.RunOpts{
 		ImageName:     ImageName,
 		HostPort:      HostPort,
 		ContainerPort: ContainerPort,
@@ -22,7 +21,7 @@ func Run(c *gin.Context) {
 
 	containerID, err := container.RunContainer(runOpts)
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panic(err)
 	}
 	c.JSON(http.StatusOK, gin.H{"containerID": containerID})

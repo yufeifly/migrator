@@ -5,9 +5,10 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/container"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 // Create handler for creating a container
@@ -30,7 +31,7 @@ func Create(c *gin.Context) {
 		}
 		ExposedPortsSli, err := json.Marshal(exposedPorts)
 		if err != nil {
-			utils.ReportErr(c, err)
+			utils.ReportErr(c, http.StatusInternalServerError, err)
 			logrus.Panic(err)
 		}
 		ExposedPorts = string(ExposedPortsSli)
@@ -43,13 +44,13 @@ func Create(c *gin.Context) {
 		}
 		PortBindingsSli, err := json.Marshal(portBindings)
 		if err != nil {
-			utils.ReportErr(c, err)
+			utils.ReportErr(c, http.StatusInternalServerError, err)
 			logrus.Panic(err)
 		}
 		PortBindings = string(PortBindingsSli)
 	}
 
-	createOpts := model.CreateOpts{
+	createOpts := types.CreateOpts{
 		ContainerName: ContainerName,
 		ImageName:     ImageName,
 		HostPort:      HostPort,
@@ -60,12 +61,9 @@ func Create(c *gin.Context) {
 	}
 	body, err := container.CreateContainer(createOpts)
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Errorf("%s, CreateContainer err: %v", header, err)
 		logrus.Panic(err)
 	}
-	c.JSON(200, gin.H{
-		"result":      "success",
-		"containerId": body.ID,
-	})
+	c.JSON(http.StatusOK, gin.H{"ContainerId": body.ID})
 }

@@ -6,8 +6,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/cusErr"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
+	"net/http"
 )
 
 // Start ContainerStart handler
@@ -18,11 +18,11 @@ func Start(c *gin.Context) {
 	checkpointDir := c.PostForm("CheckpointDir")
 
 	if containerID == "" {
-		utils.ReportErr(c, cusErr.ErrParamsNotValid)
+		utils.ReportErr(c, http.StatusBadRequest, cusErr.ErrParamsNotValid)
 		return
 	}
 
-	startOpts := model.StartOpts{
+	startOpts := container.StartOpts{
 		ContainerID: containerID,
 		CStartOpts: types.ContainerStartOptions{
 			CheckpointID:  checkpointID,
@@ -32,8 +32,8 @@ func Start(c *gin.Context) {
 
 	err := container.StartContainer(startOpts)
 	if err != nil {
-		utils.ReportErr(c, err)
+		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panic(err)
 	}
-	c.JSON(200, gin.H{"result": "success"})
+	c.JSON(http.StatusOK, gin.H{"result": "success"})
 }
