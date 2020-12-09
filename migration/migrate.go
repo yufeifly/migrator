@@ -108,7 +108,7 @@ func TryMigrate(mOpts MigrateOpts) error {
 		IP:   DestIP,
 		Port: DestPort,
 	})
-	rawResp, err := cli.SendContainerCreate(createReqOpts) // send to dst
+	rawResp, err := cli.SendContainerCreate(createReqOpts)
 	if err != nil {
 		logrus.Errorf("%s, SendContainerCreate err: %v", header, err)
 		return err
@@ -119,7 +119,7 @@ func TryMigrate(mOpts MigrateOpts) error {
 		logrus.Errorf("%s, Unmarshal response err: %v", header, err)
 		return err
 	}
-	containerID := resp["containerId"].(string) // the containerID of the created container in destination node
+	containerID := resp["ContainerId"].(string) // the containerID of the created container in destination node
 	logrus.WithFields(logrus.Fields{
 		"ContainerID": containerID,
 	}).Debug("container on dest node created")

@@ -31,12 +31,13 @@ func (cli *client) SendContainerCreate(options types.CreateReqOpts) ([]byte, err
 
 	resp, err := grequests.Post(destUrl, ro)
 	if err != nil {
+		logrus.Errorf("%s, grequests.Post err: %v", header, err)
 		return nil, err
 	}
 	body := &bytes.Buffer{}
 	_, err = body.ReadFrom(resp.RawResponse.Body)
 	if err != nil {
-		logrus.Errorf("%s: read from response body err %v", header, err)
+		logrus.Errorf("%s, read from response body err %v", header, err)
 		return nil, err
 	}
 	defer resp.RawResponse.Body.Close()

@@ -14,7 +14,7 @@ func Set(service string, key, val string) error {
 		logrus.Errorf("redis.GetService err : %v", err)
 		return err
 	}
-	logrus.Infof("redis.service: %v", ser)
+	logrus.Debugf("redis.service: %v", ser)
 	err = doSetKV(ser.ServiceCli, key, val)
 	if err != nil {
 		logrus.Errorf("redis.set.doSetKV err : %v", err)

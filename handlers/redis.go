@@ -33,7 +33,7 @@ func Set(c *gin.Context) {
 	logrus.WithFields(logrus.Fields{
 		"key":   key,
 		"value": val,
-	}).Warn("about to set pair")
+	}).Debug("about to set pair")
 
 	err := redis.Set(serviceID, key, val)
 	if err != nil {
