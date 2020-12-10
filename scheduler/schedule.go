@@ -7,7 +7,8 @@ import (
 
 var DefaultScheduler *Scheduler
 
-func init() {
+// InitScheduler ...
+func InitScheduler() {
 	DefaultScheduler = NewScheduler()
 }
 

@@ -14,12 +14,6 @@ import (
 
 var logger = logrus.New()
 
-//func init() {
-//	if utils.IsDebugEnabled() {
-//		logger.SetLevel(logrus.DebugLevel)
-//	}
-//}
-
 // PushCheckpoint push checkpoint to destination and deliver restore request
 func PushCheckpoint(migOpts model.PushOpts) error {
 	header := "migration.PushCheckpoint"

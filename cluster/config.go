@@ -11,13 +11,6 @@ import (
 
 var DefaultCluster model.Cluster
 
-func init() {
-	err := LoadClusterConfig()
-	if err != nil {
-		logrus.Panicf("cluster.init LoadClusterConfig failed, err: %v", err)
-	}
-}
-
 func LoadClusterConfig() error {
 	// fixme using GetWd function is not elegant
 	dir, err := os.Getwd()

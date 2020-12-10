@@ -13,10 +13,6 @@ type Service struct {
 	ServiceCli     *redis.Client // redis connection
 }
 
-func init() {
-	PseudoRegister()
-}
-
 // NewService new a storage service, keep it in map
 func NewService(opts model.ServiceOpts) *Service {
 	return &Service{
