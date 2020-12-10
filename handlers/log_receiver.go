@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/api/types/logger"
 	"github.com/yufeifly/migrator/task"
 	"net/http"
 )
@@ -12,7 +12,7 @@ import (
 func ReceiveLog(c *gin.Context) {
 	//ProxyServiceID := c.PostForm("Service")
 	//logrus.Infof("ProxyServiceID: %v", ProxyServiceID)
-	var logWithID model.LogWithServiceID
+	var logWithID logger.LogWithServiceID
 	//var log model.Log
 	if err := c.ShouldBindJSON(&logWithID); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})

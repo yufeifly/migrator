@@ -5,8 +5,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types/svc"
 	"github.com/yufeifly/migrator/container"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/scheduler"
 	"github.com/yufeifly/migrator/task"
 	"github.com/yufeifly/migrator/utils"
@@ -88,7 +88,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": "success"})
 
 	// register a redis service
-	service := scheduler.NewService(model.ServiceOpts{
+	service := scheduler.NewService(svc.ServiceOpts{
 		ID:             serviceID,
 		ProxyServiceID: proxyServiceID,
 		ServicePort:    servicePort,

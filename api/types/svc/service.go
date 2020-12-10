@@ -1,4 +1,4 @@
-package model
+package svc
 
 type ServiceOpts struct {
 	ID             string // service id

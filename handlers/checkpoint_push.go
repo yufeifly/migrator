@@ -5,12 +5,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/migration"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/utils"
 	"net/http"
 )
 
-// todo
+// CheckpointPush todo
 func CheckpointPush(c *gin.Context) {
 	header := "migration.CheckpointPush"
 
@@ -31,7 +30,7 @@ func CheckpointPush(c *gin.Context) {
 		checkpointDir = migration.DefaultChkPDirPrefix + containerJson.ID + "/" + checkpointID
 	}
 
-	PushOpts := model.PushOpts{
+	PushOpts := migration.PushOpts{
 		CheckPointID:  checkpointID,
 		CheckPointDir: checkpointDir,
 		DestIP:        destIP,

@@ -2,12 +2,11 @@ package migration
 
 import (
 	"fmt"
-	"github.com/yufeifly/migrator/model"
 	"testing"
 )
 
 func TestPushCheckpoint(t *testing.T) {
-	PushOpts := model.PushOpts{
+	PushOpts := PushOpts{
 		CheckPointID:  "redis-cp",
 		CheckPointDir: "/tmp",
 		DestIP:        "0.0.0.0",

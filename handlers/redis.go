@@ -19,9 +19,9 @@ func Get(c *gin.Context) {
 	if err != nil {
 		logrus.Errorf("%s, err: %v", header, err)
 		utils.ReportErr(c, http.StatusInternalServerError, err)
-	} else {
-		c.JSON(http.StatusOK, val)
+		return
 	}
+	c.JSON(http.StatusOK, val)
 }
 
 // Set redis set handler
@@ -42,7 +42,7 @@ func Set(c *gin.Context) {
 			"value": val,
 		}).Error("set pair failed")
 		utils.ReportErr(c, http.StatusInternalServerError, err)
-	} else {
-		c.JSON(http.StatusOK, gin.H{"result": "success"})
+		return
 	}
+	c.JSON(http.StatusOK, gin.H{"result": "success"})
 }

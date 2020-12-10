@@ -5,6 +5,7 @@ import (
 	"github.com/yufeifly/migrator/handlers"
 )
 
+// InitRoutes init routes
 func InitRoutes(r *gin.Engine) {
 	// redis operations
 	// redis get func

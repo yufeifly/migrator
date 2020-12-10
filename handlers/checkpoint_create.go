@@ -14,12 +14,12 @@ func CheckpointCreate(c *gin.Context) {
 	CheckpointID := c.PostForm("CheckpointID")
 	CheckpointDIR := c.PostForm("CheckpointDIR")
 
-	cpOpts := container.CheckpointReqOpts{
+	opts := container.CheckpointReqOpts{
 		Container:     Container,
 		CheckPointID:  CheckpointID,
 		CheckPointDir: CheckpointDIR,
 	}
-	if err := container.CreateCheckpoint(cpOpts); err != nil {
+	if err := container.CreateCheckpoint(opts); err != nil {
 		utils.ReportErr(c, http.StatusInternalServerError, err)
 		logrus.Panic(err)
 	}

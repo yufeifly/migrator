@@ -1,5 +1,6 @@
 package types
 
+// CreateOpts ...
 type CreateOpts struct {
 	ContainerName string
 	ImageName     string
@@ -10,6 +11,7 @@ type CreateOpts struct {
 	Cmd           string
 }
 
+// CreateReqOpts ...
 type CreateReqOpts struct {
 	CreateOpts
 	Address

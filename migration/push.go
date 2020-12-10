@@ -3,7 +3,6 @@ package migration
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/model"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -14,8 +13,20 @@ import (
 
 var logger = logrus.New()
 
+// PushOpts push checkpoint to dst node
+type PushOpts struct {
+	CheckPointID  string
+	CheckPointDir string
+	DestIP        string
+	DestPort      string
+	ContainerID   string
+	ServiceID     string
+	ServicePort   string
+	ProxyService  string
+}
+
 // PushCheckpoint push checkpoint to destination and deliver restore request
-func PushCheckpoint(migOpts model.PushOpts) error {
+func PushCheckpoint(migOpts PushOpts) error {
 	header := "migration.PushCheckpoint"
 
 	ip := migOpts.DestIP

@@ -3,8 +3,8 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types/svc"
 	"github.com/yufeifly/migrator/container"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/scheduler"
 	"github.com/yufeifly/migrator/utils"
 	"net/http"
@@ -32,7 +32,7 @@ func ServiceAdd(c *gin.Context) {
 		logrus.Panic(err)
 	}
 
-	sOpts := model.ServiceOpts{
+	sOpts := svc.ServiceOpts{
 		ID:             ServiceID,
 		ProxyServiceID: ProxyServiceID,
 		ServicePort:    servicePort,

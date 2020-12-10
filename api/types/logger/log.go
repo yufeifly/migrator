@@ -1,4 +1,4 @@
-package model
+package logger
 
 type Log struct {
 	Last     bool

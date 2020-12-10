@@ -6,7 +6,6 @@ import (
 	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/client"
 	"github.com/yufeifly/migrator/container"
-	"github.com/yufeifly/migrator/model"
 	"github.com/yufeifly/migrator/scheduler"
 	"github.com/yufeifly/migrator/utils"
 )
@@ -142,7 +141,7 @@ func TryMigrate(mOpts MigrateOpts) error {
 	}
 
 	// 3 push checkpoint to destination node
-	PushOpts := model.PushOpts{
+	PushOpts := PushOpts{
 		CheckPointID:  chOpts.CheckPointID,
 		CheckPointDir: chOpts.CheckPointDir,
 		DestIP:        DestIP,

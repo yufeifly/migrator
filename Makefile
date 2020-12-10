@@ -20,6 +20,10 @@ run2:
 debug:
 	DEBUG=1 $(GORUN) main.go
 
+## debug2: DEBUG=1 DST=1 sudo -E go run main.go
+debug2:
+	DEBUG=1 DST=1 $(GORUN) main.go
+
 ## build: Compile the binary.
 build:
 	@go build -o $(PROJECT_NAME)

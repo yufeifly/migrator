@@ -2,7 +2,7 @@ package scheduler
 
 import (
 	"github.com/go-redis/redis/v8"
-	"github.com/yufeifly/migrator/model"
+	"github.com/yufeifly/migrator/api/types/svc"
 )
 
 type Service struct {
@@ -14,7 +14,7 @@ type Service struct {
 }
 
 // NewService new a storage service, keep it in map
-func NewService(opts model.ServiceOpts) *Service {
+func NewService(opts svc.ServiceOpts) *Service {
 	return &Service{
 		ID:             opts.ID,
 		ProxyServiceID: opts.ProxyServiceID,
@@ -30,7 +30,7 @@ func NewService(opts model.ServiceOpts) *Service {
 
 // PseudoRegister register services
 func PseudoRegister() {
-	opts1 := model.ServiceOpts{
+	opts1 := svc.ServiceOpts{
 		ID:             "service1.1",
 		ProxyServiceID: "service1",
 		ServicePort:    "39955",
@@ -38,7 +38,7 @@ func PseudoRegister() {
 	}
 	DefaultScheduler.AddService(NewService(opts1))
 
-	opts2 := model.ServiceOpts{
+	opts2 := svc.ServiceOpts{
 		ID:             "service2.1",
 		ProxyServiceID: "service2",
 		ServicePort:    "39956",

@@ -4,7 +4,7 @@ import (
 	"github.com/docker/docker/api/types"
 )
 
-// ListContainers
+// ListContainers ...
 func ListContainers(opts types.ContainerListOptions) ([]types.Container, error) {
 	containers, err := dockerCli.ContainerList(ctx, opts)
 	if err != nil {

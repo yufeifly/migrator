@@ -3,8 +3,12 @@ package cusErr
 import "errors"
 
 var (
-	ErrNotFound          = errors.New("no such record")
-	ErrServiceNotFound   = errors.New("service not found")
-	ErrParamsNotValid    = errors.New("params not valid")
+	// ErrNotFound ...
+	ErrNotFound = errors.New("no such record")
+	// ErrServiceNotFound ...
+	ErrServiceNotFound = errors.New("service not found")
+	// ErrParamsNotValid ...
+	ErrParamsNotValid = errors.New("params not valid")
+	// ErrTaskQueueNotFound ...
 	ErrTaskQueueNotFound = errors.New("no such task queue")
 )

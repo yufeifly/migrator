@@ -24,10 +24,7 @@ func (cli *client) SendContainerCreate(options types.CreateReqOpts) ([]byte, err
 	ro := &grequests.RequestOptions{
 		Data: data,
 	}
-	destUrl := "http://" + options.IP + ":" + options.Port + "/container/create"
-	logrus.WithFields(logrus.Fields{
-		"DestUrl": destUrl,
-	}).Info(header)
+	destUrl := cli.getAPIPath("/container/create")
 
 	resp, err := grequests.Post(destUrl, ro)
 	if err != nil {
