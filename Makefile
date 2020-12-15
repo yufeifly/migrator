@@ -7,7 +7,6 @@ help: Makefile
 	@echo "Available Commands:"
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 
-
 ## run: sudo -E go run main.go
 run:
 	$(GORUN) main.go

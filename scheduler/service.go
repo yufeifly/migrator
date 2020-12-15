@@ -34,7 +34,7 @@ func PseudoRegister() {
 		ID:             "service1.1",
 		ProxyServiceID: "service1",
 		ServicePort:    "39955",
-		Container:      "ad91861d049d",
+		Container:      "redis-service1", // name of the container
 	}
 	DefaultScheduler.AddService(NewService(opts1))
 
@@ -42,7 +42,7 @@ func PseudoRegister() {
 		ID:             "service2.1",
 		ProxyServiceID: "service2",
 		ServicePort:    "39956",
-		Container:      "4a81463a7",
+		Container:      "redis-service2", // name of the container
 	}
 	DefaultScheduler.AddService(NewService(opts2))
 }
