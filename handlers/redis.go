@@ -10,14 +10,12 @@ import (
 
 // Get redis get handler
 func Get(c *gin.Context) {
-	header := "redis.Get"
-
 	key := c.Query("key")
 	serviceID := c.Query("service") // of worker
 
 	val, err := redis.Get(serviceID, key)
 	if err != nil {
-		logrus.Errorf("%s, err: %v", header, err)
+		logrus.Errorf("%s, err: %v", "redis.Get", err)
 		utils.ReportErr(c, http.StatusInternalServerError, err)
 		return
 	}
@@ -41,6 +39,21 @@ func Set(c *gin.Context) {
 			"key":   key,
 			"value": val,
 		}).Error("set pair failed")
+		utils.ReportErr(c, http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"result": "success"})
+}
+
+func Delete(c *gin.Context) {
+	key := c.PostForm("key")
+	serviceID := c.PostForm("service")
+
+	err := redis.Delete(serviceID, key)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"key": key,
+		}).Error("delete pair failed")
 		utils.ReportErr(c, http.StatusInternalServerError, err)
 		return
 	}
