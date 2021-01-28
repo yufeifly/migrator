@@ -33,6 +33,6 @@ func doSetKV(cli *redis.Client, key, val string) error {
 	logrus.WithFields(logrus.Fields{
 		"key":   key,
 		"value": val,
-	}).Info("pair set")
+	}).Debug("pair set")
 	return nil
 }

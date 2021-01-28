@@ -28,6 +28,6 @@ func doDeleteKV(cli *redis.Client, key string) error {
 	}
 	logrus.WithFields(logrus.Fields{
 		"key": key,
-	}).Info("pair delete")
+	}).Debug("pair delete")
 	return nil
 }

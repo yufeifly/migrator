@@ -25,14 +25,17 @@ func doGetKV(cli *redis.Client, key string) (string, error) {
 	val, err := cli.Get(context.Background(), key).Result()
 	if err == redis.Nil {
 		return "", cusErr.ErrNotFound
-	} else if err != nil {
+	}
+
+	if err != nil {
 		logrus.Errorf("%s, err: %v", header, err)
 		return "", err
-	} else {
-		logrus.WithFields(logrus.Fields{
-			"key":   key,
-			"value": val,
-		}).Info("the (key, value) pair")
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"key":   key,
+		"value": val,
+	}).Debug("the (key, value) pair")
+
 	return val, nil
 }

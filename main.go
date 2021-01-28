@@ -30,6 +30,7 @@ func main() {
 		scheduler.PseudoRegister()
 	}
 	//
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 	router.InitRoutes(r)
 	if err := r.Run(":6789"); err != nil {
