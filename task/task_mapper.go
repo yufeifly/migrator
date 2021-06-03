@@ -1,7 +1,15 @@
 // map[ProxyServiceID]taskQueue
 package task
 
-import "sync"
+import (
+	"github.com/yufeifly/migrator/api/types/log"
+	"sync"
+)
+
+type Task struct {
+	CID  string
+	LogC chan log.Log
+}
 
 var DefaultMapper *Mapper
 
@@ -16,6 +24,10 @@ type Mapper struct {
 
 func NewMapper() *Mapper {
 	return &Mapper{}
+}
+
+func Default() *Mapper {
+	return DefaultMapper
 }
 
 func (m *Mapper) AddTaskQueue(ProxyServiceID string, q *Queue) {
@@ -34,4 +46,13 @@ func (m *Mapper) GetTaskQueue(ProxyServiceID string) *Queue {
 	}
 	q, _ := que.(*Queue)
 	return q
+}
+
+func (m *Mapper) GetTask(cid string) *Task {
+	task, ok := m.Map.Load(cid)
+	if !ok {
+		return nil
+	}
+	t, _ := task.(*Task)
+	return t
 }

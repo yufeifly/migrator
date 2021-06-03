@@ -2,6 +2,6 @@ package cluster
 
 import "testing"
 
-func TestLoadClusterConfig(t *testing.T) {
-	LoadClusterConfig()
+func TestLoadConfig(t *testing.T) {
+	LoadConfig()
 }

@@ -2,29 +2,43 @@ package redis
 
 import (
 	"context"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/cuserr"
 	"github.com/yufeifly/migrator/scheduler"
 )
 
 //
-func Set(service string, key, val string) error {
-	ser, err := scheduler.DefaultScheduler.GetService(service)
+func Set(containerID string, key, val string) error {
+	cServ, err := scheduler.Default().GetContainerServ(containerID)
 	if err != nil {
 		logrus.Errorf("redis.GetService err : %v", err)
 		return err
 	}
-	logrus.Debugf("redis.service: %v", ser)
-	err = doSetKV(ser.ServiceCli, key, val)
+
+	token := cServ.Ticket().Get()
+	if cServ.Ticket().WriteBaned(token) {
+		return cuserr.ErrServiceNotAvailable
+	}
+	if cServ.Ticket().IsLogging(token) {
+		go func(key, val string) {
+			err := cServ.LogRecord(key, val)
+			if err != nil {
+				logrus.Errorf("redis.Set LogRecord failed, err: %v", err)
+			}
+		}(key, val)
+	}
+
+	err = setKV(cServ.ServiceCli, key, val)
 	if err != nil {
-		logrus.Errorf("redis.set.doSetKV err : %v", err)
 		return err
 	}
 	return nil
 }
 
 //
-func doSetKV(cli *redis.Client, key, val string) error {
+func setKV(cli *redis.Client, key, val string) error {
 	err := cli.Set(context.Background(), key, val, 0).Err()
 	if err != nil {
 		logrus.Errorf("redis.doSetKV err : %v", err)

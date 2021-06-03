@@ -9,7 +9,7 @@ import (
 )
 
 // MigrateRedis handler of migrating redis
-func MigrateContainer(c *gin.Context) {
+func Migrate(c *gin.Context) {
 	// 获取请求参数
 	var migrateOpts migration.MigrateOpts
 	if err := c.ShouldBindJSON(&migrateOpts); err != nil {
@@ -17,7 +17,7 @@ func MigrateContainer(c *gin.Context) {
 	}
 
 	logrus.Debugf("MigrateContainer.MigrateOpts: %v", migrateOpts)
-	err := migration.TryMigrate(migrateOpts)
+	err := migration.Migrate(migrateOpts)
 
 	if err != nil {
 		utils.ReportErr(c, http.StatusInternalServerError, err)

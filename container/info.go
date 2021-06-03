@@ -7,11 +7,11 @@ import (
 
 // Inspect get info of container
 func Inspect(containerID string) (types.ContainerJSON, error) {
-	serverResp, err := dockerCli.ContainerInspect(ctx, containerID)
+	resp, err := dockerCli.ContainerInspect(ctx, containerID)
 	if err != nil {
 		return types.ContainerJSON{}, err
 	}
-	return serverResp, err
+	return resp, err
 }
 
 // @deprecated replaced by GetImageByContainer

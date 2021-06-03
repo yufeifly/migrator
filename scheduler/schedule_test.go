@@ -6,12 +6,12 @@ import (
 )
 
 func TestScheduler_AddService(t *testing.T) {
-	service := &Service{
-		ID:          "service1",
-		ContainerID: "123456",
-		ServiceCli:  nil,
+	service := &ContainerServ{
+		SID:        "service1",
+		CID:        "123456",
+		ServiceCli: nil,
 	}
-	DefaultScheduler.AddService(service)
-	get, _ := DefaultScheduler.GetService(service.ID)
+	DefaultScheduler.AddContainerServ(service)
+	get, _ := DefaultScheduler.GetContainerServ(service.CID)
 	fmt.Printf("get serive: %v\n", get)
 }

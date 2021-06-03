@@ -18,16 +18,16 @@ func init() {
 
 func main() {
 	// loading cluster
-	err := cluster.LoadClusterConfig()
+	err := cluster.LoadConfig()
 	if err != nil {
-		logrus.Panicf("LoadClusterConfig failed, err: %v", err)
+		logrus.Panicf("load Cluster Config failed, err: %v", err)
 	}
 	// init default scheduler
-	scheduler.InitScheduler()
+	scheduler.Init()
 	//
-	if !utils.IsDSTNode() {
-		logrus.Info("PseudoRegistering")
-		scheduler.PseudoRegister()
+	if !utils.TargetNode() {
+		logrus.Info("registering services")
+		scheduler.RegisterServices()
 	}
 	//
 	gin.SetMode(gin.ReleaseMode)

@@ -2,6 +2,7 @@ package migration
 
 import (
 	"fmt"
+	"github.com/yufeifly/migrator/api/types"
 	"testing"
 )
 
@@ -9,9 +10,10 @@ func TestPushCheckpoint(t *testing.T) {
 	PushOpts := PushOpts{
 		CheckPointID:  "redis-cp",
 		CheckPointDir: "/tmp",
-		DestIP:        "0.0.0.0",
-		DestPort:      "6789",
-		ContainerID:   "85ea0420bb58",
+		Dest:          types.Address{},
+		CID:           "",
+		SID:           "",
+		Port:          "",
 	}
 	err := PushCheckpoint(PushOpts)
 	if err != nil {

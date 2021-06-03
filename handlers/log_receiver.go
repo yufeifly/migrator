@@ -4,33 +4,31 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/yufeifly/migrator/api/types/logger"
+	"github.com/yufeifly/migrator/api/types/log"
 	"github.com/yufeifly/migrator/task"
 	"net/http"
 )
 
 func ReceiveLog(c *gin.Context) {
-	//ProxyServiceID := c.PostForm("Service")
-	//logrus.Infof("ProxyServiceID: %v", ProxyServiceID)
-	var logWithID logger.LogWithServiceID
-	//var log model.Log
-	if err := c.ShouldBindJSON(&logWithID); err != nil {
+	var logWithCID log.LogWithCID
+
+	if err := c.ShouldBindJSON(&logWithCID); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 	}
-	logrus.Warnf("logWithID: %v", logWithID)
+	logrus.Warnf("logWithCID: %v", logWithCID)
 
-	logJson, _ := json.Marshal(logWithID.Log)
+	logJson, _ := json.Marshal(logWithCID.Log)
 
-	q := task.DefaultMapper.GetTaskQueue(logWithID.ProxyServiceID)
+	q := task.DefaultMapper.GetTaskQueue(logWithCID.CID)
 	if q == nil {
 		q := task.NewQueue()
-		task.DefaultMapper.AddTaskQueue(logWithID.ProxyServiceID, q)
+		task.DefaultMapper.AddTaskQueue(logWithCID.CID, q)
 		logrus.Warn("ReceiveLog: new a task queue")
 	}
 
-	if task.DefaultMapper.GetTaskQueue(logWithID.ProxyServiceID) != nil {
-		logrus.Infof("push a log to queue, ProxyServiceID: %v", logWithID.ProxyServiceID)
-		task.DefaultMapper.GetTaskQueue(logWithID.ProxyServiceID).Push(string(logJson)) // push a log to task queue
+	if task.DefaultMapper.GetTaskQueue(logWithCID.CID) != nil {
+		logrus.Infof("push a log to queue, ProxyServiceID: %v", logWithCID.CID)
+		task.DefaultMapper.GetTaskQueue(logWithCID.CID).Push(string(logJson)) // push a log to task queue
 	} else {
 		logrus.Panic("task.NewQueue failed")
 	}

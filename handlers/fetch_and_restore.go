@@ -2,7 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/docker/docker/api/types"
+	"github.com/yufeifly/migrator/api/types"
+	"github.com/yufeifly/migrator/cluster"
+	"net/http"
+	"os"
+	"time"
+
+	ctypes "github.com/docker/docker/api/types"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/api/types/svc"
@@ -10,9 +16,6 @@ import (
 	"github.com/yufeifly/migrator/scheduler"
 	"github.com/yufeifly/migrator/task"
 	"github.com/yufeifly/migrator/utils"
-	"net/http"
-	"os"
-	"time"
 )
 
 // ReceiveCheckpointAndRestore get checkpoint from source node and restore from it
@@ -21,10 +24,10 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	// get params
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
-	cID := c.PostForm("ContainerID")         // of dst
-	serviceID := c.PostForm("ServiceID")     // of dst worker
-	servicePort := c.PostForm("ServicePort") // of src worker, also dst worker
-	proxyServiceID := c.PostForm("ProxyServiceID")
+	cIDDst := c.PostForm("ContainerIDDest")
+	cIDSrc := c.PostForm("ContainerIDSource")
+	sID := c.PostForm("ServiceID")
+	servicePort := c.PostForm("ServicePort")
 
 	// checkpoint path
 	cpPath := cpDir + "/" + cpID // example: /tmp/cp1
@@ -72,8 +75,8 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	time.Sleep(500 * time.Millisecond)
 	// 2 start the container
 	startOpts := container.StartOpts{
-		ContainerID: cID,
-		CStartOpts: types.ContainerStartOptions{
+		ContainerID: cIDDst,
+		CStartOpts: ctypes.ContainerStartOptions{
 			CheckpointID:  cpID,
 			CheckpointDir: cpDir,
 		},
@@ -88,24 +91,29 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"result": "success"})
 
 	// register a redis service
-	service := scheduler.NewService(svc.ServiceOpts{
-		ID:             serviceID,
-		ProxyServiceID: proxyServiceID,
-		ServicePort:    servicePort,
-		Container:      cID,
+	service := scheduler.NewContainerServ(svc.ServiceOpts{
+		CID:  cIDDst,
+		SID:  sID,
+		Port: servicePort,
 	})
-	scheduler.DefaultScheduler.AddService(service)
+	scheduler.DefaultScheduler.AddContainerServ(service)
 	logrus.Infof("%s, AddService finished, new service: %v", header, service)
 
 	// consume logs
 	// todo but which log belongs to it?
 	logrus.Warn("going to consume logs")
-	go func() {
+	srcNode := cluster.Node{
+		types.Address{
+			IP:   c.ClientIP(),
+			Port: "6789",
+		},
+	}
+	go func(srcNode cluster.Node) {
 		consumer := task.NewConsumer()
-		err := consumer.Consume(proxyServiceID, serviceID)
+		err := consumer.Consume(cIDDst, cIDSrc, srcNode)
 		if err != nil {
 			logrus.Panic(err)
 		}
 		logrus.Info("consumer goroutine stopped")
-	}()
+	}(srcNode)
 }

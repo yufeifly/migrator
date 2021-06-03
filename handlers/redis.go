@@ -10,10 +10,10 @@ import (
 
 // Get redis get handler
 func Get(c *gin.Context) {
-	key := c.Query("key")
-	serviceID := c.Query("service") // of worker
+	key := c.Query("Key")
+	cid := c.Query("ContainerID") // of worker
 
-	val, err := redis.Get(serviceID, key)
+	val, err := redis.Get(cid, key)
 	if err != nil {
 		logrus.Errorf("%s, err: %v", "redis.Get", err)
 		utils.ReportErr(c, http.StatusInternalServerError, err)
@@ -24,16 +24,16 @@ func Get(c *gin.Context) {
 
 // Set redis set handler
 func Set(c *gin.Context) {
-	key := c.PostForm("key")
-	val := c.PostForm("value")
-	serviceID := c.PostForm("service")
+	key := c.PostForm("Key")
+	val := c.PostForm("Value")
+	cid := c.PostForm("ContainerID")
 
 	logrus.WithFields(logrus.Fields{
 		"key":   key,
 		"value": val,
 	}).Debug("about to set pair")
 
-	err := redis.Set(serviceID, key, val)
+	err := redis.Set(cid, key, val)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"key":   key,
@@ -46,10 +46,10 @@ func Set(c *gin.Context) {
 }
 
 func Delete(c *gin.Context) {
-	key := c.PostForm("key")
-	serviceID := c.PostForm("service")
+	key := c.PostForm("Key")
+	cid := c.PostForm("ContainerID")
 
-	err := redis.Delete(serviceID, key)
+	err := redis.Delete(cid, key)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"key": key,

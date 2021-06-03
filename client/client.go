@@ -1,13 +1,16 @@
 package client
 
 import (
-	"github.com/yufeifly/migrator/api/types"
 	"net/http"
+
+	"github.com/yufeifly/migrator/api/types"
+	"github.com/yufeifly/migrator/api/types/log"
 )
 
 type APIClient interface {
 	SendContainerCreate(options types.CreateReqOpts) ([]byte, error)
 	ConsumedAdder(proxyService string) error
+	SendLog(logWithID log.LogWithCID) error
 }
 
 type client struct {

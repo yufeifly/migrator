@@ -16,3 +16,10 @@ type CreateReqOpts struct {
 	CreateOpts
 	Address
 }
+
+// CheckpointReqOpts ...
+type CheckpointReqOpts struct {
+	Container     string
+	CheckPointID  string
+	CheckPointDir string
+}

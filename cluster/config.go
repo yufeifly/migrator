@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func LoadClusterConfig() error {
+func LoadConfig() error {
 	// fixme using GetWd function is not elegant
 	dir, err := os.Getwd()
 	if err != nil {
@@ -17,14 +17,14 @@ func LoadClusterConfig() error {
 	configFilePath := filepath.Join(dir, "cluster/cluster.json")
 	jsonFile, err := os.Open(configFilePath)
 	if err != nil {
-		logrus.Errorf("cluster.LoadClusterConfig open file failed, err: %v", err)
+		logrus.Errorf("cluster.LoadConfig open file failed, err: %v", err)
 		return err
 	}
 	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	err = json.Unmarshal(byteValue, &defaultCluster)
 	if err != nil {
-		logrus.Errorf("cluster.LoadClusterConfig Unmarshal failed, err: %v", err)
+		logrus.Errorf("cluster.LoadConfig Unmarshal failed, err: %v", err)
 		return err
 	}
 	//logrus.Infof("the cluster: %v", DefaultCluster)

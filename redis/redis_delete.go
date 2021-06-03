@@ -7,20 +7,21 @@ import (
 	"github.com/yufeifly/migrator/scheduler"
 )
 
-func Delete(service string, key string) error {
-	ser, err := scheduler.DefaultScheduler.GetService(service)
+func Delete(containerID string, key string) error {
+	containerServ, err := scheduler.Default().GetContainerServ(containerID)
 	if err != nil {
 		return err
 	}
-	logrus.Debugf("redis.service: %v", ser)
-	err = doDeleteKV(ser.ServiceCli, key)
+
+	err = deleteKV(containerServ.ServiceCli, key)
 	if err != nil {
+		logrus.Errorf("delete kv failed, key: %v", key)
 		return err
 	}
 	return nil
 }
 
-func doDeleteKV(cli *redis.Client, key string) error {
+func deleteKV(cli *redis.Client, key string) error {
 	err := cli.Del(context.Background(), key).Err()
 	if err != nil {
 		logrus.Errorf("redis.doDeleteKV err : %v", err)

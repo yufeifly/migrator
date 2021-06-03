@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/container"
-	"github.com/yufeifly/migrator/cusErr"
+	"github.com/yufeifly/migrator/cuserr"
 	"github.com/yufeifly/migrator/utils"
 	"net/http"
 )
@@ -18,7 +18,7 @@ func Start(c *gin.Context) {
 	checkpointDir := c.PostForm("CheckpointDir")
 
 	if containerID == "" {
-		utils.ReportErr(c, http.StatusBadRequest, cusErr.ErrParamsNotValid)
+		utils.ReportErr(c, http.StatusBadRequest, cuserr.ErrParamsNotValid)
 		return
 	}
 

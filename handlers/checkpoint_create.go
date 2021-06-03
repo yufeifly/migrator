@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/utils"
 	"net/http"
@@ -14,7 +15,7 @@ func CheckpointCreate(c *gin.Context) {
 	CheckpointID := c.PostForm("CheckpointID")
 	CheckpointDIR := c.PostForm("CheckpointDIR")
 
-	opts := container.CheckpointReqOpts{
+	opts := types.CheckpointReqOpts{
 		Container:     Container,
 		CheckPointID:  CheckpointID,
 		CheckPointDir: CheckpointDIR,

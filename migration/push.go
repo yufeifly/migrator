@@ -3,6 +3,7 @@ package migration
 import (
 	"bytes"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -17,29 +18,26 @@ var logger = logrus.New()
 type PushOpts struct {
 	CheckPointID  string
 	CheckPointDir string
-	DestIP        string
-	DestPort      string
-	ContainerID   string
-	ServiceID     string
-	ServicePort   string
-	ProxyService  string
+	Dest          types.Address
+	CID           string
+	SID           string
+	Port          string
 }
 
 // PushCheckpoint push checkpoint to destination and deliver restore request
 func PushCheckpoint(migOpts PushOpts) error {
 	header := "migration.PushCheckpoint"
 
-	ip := migOpts.DestIP
-	port := migOpts.DestPort
+	ip := migOpts.Dest.IP
+	port := migOpts.Dest.Port
 
 	urlPost := "http://" + ip + ":" + port + "/container/checkpoint/restore"
 	params := map[string]string{
-		"ContainerID":    migOpts.ContainerID,
-		"CheckPointID":   migOpts.CheckPointID,
-		"CheckPointDir":  migOpts.CheckPointDir,
-		"ServiceID":      migOpts.ServiceID, // of src worker
-		"ServicePort":    migOpts.ServicePort,
-		"ProxyServiceID": migOpts.ProxyService,
+		"ContainerID":   migOpts.CID,
+		"ServiceID":     migOpts.SID,
+		"ExposedPort":   migOpts.Port,
+		"CheckPointID":  migOpts.CheckPointID,
+		"CheckPointDir": migOpts.CheckPointDir,
 	}
 	cpPath := migOpts.CheckPointDir + "/" + migOpts.CheckPointID
 

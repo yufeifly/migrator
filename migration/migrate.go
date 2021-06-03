@@ -2,112 +2,144 @@ package migration
 
 import (
 	"encoding/json"
+	"time"
+
+	ctypes "github.com/docker/docker/api/types"
 	"github.com/sirupsen/logrus"
 	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/client"
 	"github.com/yufeifly/migrator/container"
 	"github.com/yufeifly/migrator/scheduler"
-	"github.com/yufeifly/migrator/utils"
 )
 
 // MigrateOpts
 type MigrateOpts struct {
 	types.Address
-	ServiceID     string
-	ProxyService  string
+	CID           string
+	SID           string
 	CheckpointID  string
 	CheckpointDir string
 }
 
-// TryMigrate migrate redis service
+// Migrate migrate a whole service or a container
+func Migrate(mOpts MigrateOpts) error {
+	err := MigrateOneWithLogging(mOpts)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func MigrateOneWithLogging(options MigrateOpts) error {
+
+	cServ, err := scheduler.Default().GetContainerServ(options.CID)
+	if err != nil {
+		logrus.Errorf("migration.MigrateOneWithLogging GetContainerServ failed, err: %v", err)
+		return err
+	}
+	logrus.Debugf("migration.MigrateOneWithLogging service: %v", cServ)
+
+	options.CID = cServ.CID
+
+	// start logging
+	cServ.Ticket().Logging()
+
+	startedCh := make(chan struct{})
+	// send migrate request to src node
+	go func() {
+		err := TryMigrate(options)
+		if err != nil {
+			logrus.Panicf("cli.SendMigrate failed, err: %v", err)
+		}
+		startedCh <- struct{}{}
+	}()
+
+	// write log files to dst
+	// when dst starts, open redis connection
+	// dst consume logs in the meantime
+	// wait until all log files are consumed(no whole log file)
+	ticker := time.NewTicker(1 * time.Microsecond)
+FOR:
+	for {
+		select {
+		case <-startedCh:
+			logrus.Debug("migration.TryMigrateWithLogging, get value from chan(started)")
+			sent := cServ.LogSent()
+			if sent == 0 {
+				logrus.Debug("migration.TryMigrateWithLogging, log sent number is 0, about to send the last log")
+				break FOR
+			}
+		case <-ticker.C:
+			if cServ.LoggingFinished() {
+				logrus.Warn("migration.TryMigrateWithLogging, downtime start")
+				cServ.Ticket().BanWrite()
+				break FOR
+			}
+		case log := <-cServ.Logger().LogBuffer():
+			err := cServ.SendLog(log, options.Address, false)
+			if err != nil {
+				logrus.Errorf("scheduler.LogDataInJSON SendLog failed, err: %v", err)
+				return err
+			}
+		}
+	}
+
+	// send the last log with flag "true" to dst,
+	// true flag tells dst that this is the last one, so the consumer goroutine can stop
+	err = cServ.SendLog(cServ.Logger().Log, options.Address, true)
+	if err != nil {
+		logrus.Errorf("migration.TryMigrateWithLogging, SendLastLog failed, err: %v", err)
+		return err
+	}
+
+	// wait until the last log consumed by dst
+	for {
+		<-ticker.C
+		if cServ.LoggingFinished() {
+			logrus.Warn("migration.TryMigrateWithLogging, switching, requests redirect to dst node")
+			// 1 inform the proxy the migration
+			// 2 delete the container of the node
+			break
+		}
+	}
+	ticker.Stop()
+
+	// downtime end, unset global lock
+	logrus.Debug("migration.TryMigrateWithLogging, ticket unset")
+	cServ.Ticket().ReturnNormal()
+
+	return nil
+}
+
+// TryMigrate migrate a container
 func TryMigrate(mOpts MigrateOpts) error {
 	header := "migration.TryMigrate"
 	// get params
-	ServiceID := mOpts.ServiceID         // real service id
-	ProxyServiceID := mOpts.ProxyService // proxy id
+	//CID := mOpts.CID // real service id
+	SID := mOpts.SID // proxy id
 	CheckpointID := mOpts.CheckpointID
 	CheckpointDir := mOpts.CheckpointDir
-	DestIP := mOpts.IP     // the destination ip
-	DestPort := mOpts.Port // the destination port
-	// get real service
-	service, err := scheduler.Default().GetService(ServiceID)
+	// get service
+	service, err := scheduler.Default().GetContainerServ(SID)
 	if err != nil {
 		logrus.Errorf("%s, scheduler.DefaultScheduler.GetService err: %v", header, err)
 		return err
 	}
 	// get all infos of a container
-	containerJSON, err := container.Inspect(service.ContainerID)
+	cJSON, err := container.Inspect(service.CID)
 	if err != nil {
 		logrus.Errorf("%s, container.Inspect err: %v", header, err)
 		return err
 	}
 
-	// get image name of the container to be migrated
-	imageName := containerJSON.Config.Image
-
-	// 1 send container create request
-	// 1.1 get container's cmd in source node
-	var CmdStr string
-	if containerJSON.Config.Cmd != nil {
-		cmd, err := json.Marshal(containerJSON.Config.Cmd)
-		if err != nil {
-			logrus.Errorf("%s, marshal cmd err: %v", header, err)
-			return err
-		}
-		CmdStr = string(cmd)
-		logrus.WithFields(logrus.Fields{
-			"cmd": CmdStr,
-		}).Debug("command of docker")
+	createoptions, err := parseContainer(cJSON, mOpts.Address)
+	if err != nil {
+		logrus.Errorf("%s, parseContainer err: %v", header, err)
+		return err
 	}
 
-	// 1.2 get container's port map in source node
-	var PortBindingsStr string
-	portBindings := containerJSON.HostConfig.PortBindings
-	if portBindings != nil {
-		pbJSON, err := json.Marshal(portBindings)
-		if err != nil {
-			logrus.Errorf("%s, marshal portBindings err: %v", header, err)
-			return err
-		}
-		PortBindingsStr = string(pbJSON)
-		logrus.WithFields(logrus.Fields{
-			"PortBindings": PortBindingsStr,
-		}).Debug("PortBindings")
-	}
-
-	var ExposedPortsStr string
-	exposedPorts := containerJSON.Config.ExposedPorts
-	if exposedPorts != nil {
-		epJSON, err := json.Marshal(exposedPorts)
-		if err != nil {
-			return err
-		}
-		ExposedPortsStr = string(epJSON)
-		logrus.WithFields(logrus.Fields{
-			"ExposedPorts": ExposedPortsStr,
-		}).Debug("ExposedPorts")
-	}
-
-	createReqOpts := types.CreateReqOpts{
-		CreateOpts: types.CreateOpts{
-			ContainerName: "", // empty string means a random name
-			ImageName:     imageName,
-			HostPort:      "", // empty string
-			ContainerPort: "", // empty string
-			PortBindings:  PortBindingsStr,
-			ExposedPorts:  ExposedPortsStr,
-			Cmd:           CmdStr,
-		},
-		Address: types.Address{
-			IP:   DestIP,
-			Port: DestPort,
-		},
-	}
-	cli := client.NewClient(types.Address{
-		IP:   DestIP,
-		Port: DestPort,
-	})
-	rawResp, err := cli.SendContainerCreate(createReqOpts)
+	cli := client.NewClient(mOpts.Address)
+	rawResp, err := cli.SendContainerCreate(createoptions)
 	if err != nil {
 		logrus.Errorf("%s, SendContainerCreate err: %v", header, err)
 		return err
@@ -118,7 +150,8 @@ func TryMigrate(mOpts MigrateOpts) error {
 		logrus.Errorf("%s, Unmarshal response err: %v", header, err)
 		return err
 	}
-	containerID := resp["ContainerId"].(string) // the containerID of the created container in destination node
+	// container id of the created container in target node
+	containerID, _ := resp["ContainerId"].(string)
 	logrus.WithFields(logrus.Fields{
 		"ContainerID": containerID,
 	}).Debug("container on dest node created")
@@ -126,10 +159,10 @@ func TryMigrate(mOpts MigrateOpts) error {
 	// 2 create a checkpoint
 	// make the default checkpoint dir
 	if CheckpointDir == "" {
-		CheckpointDir = DefaultChkPDirPrefix + containerJSON.ID
+		CheckpointDir = DefaultChkPDirPrefix + cJSON.ID
 	}
-	chOpts := container.CheckpointReqOpts{
-		Container:     service.ContainerID,
+	chOpts := types.CheckpointReqOpts{
+		Container:     service.CID,
 		CheckPointID:  CheckpointID,
 		CheckPointDir: CheckpointDir,
 	}
@@ -144,12 +177,10 @@ func TryMigrate(mOpts MigrateOpts) error {
 	PushOpts := PushOpts{
 		CheckPointID:  chOpts.CheckPointID,
 		CheckPointDir: chOpts.CheckPointDir,
-		DestIP:        DestIP,
-		DestPort:      DestPort,
-		ContainerID:   containerID,                          // created in dst
-		ServiceID:     utils.RenameService(mOpts.ServiceID), // make a name for dst service based on src service name
-		ServicePort:   service.ServicePort,
-		ProxyService:  ProxyServiceID,
+		Dest:          mOpts.Address,
+		CID:           containerID,
+		Port:          service.Port,
+		SID:           SID,
 	}
 	err = PushCheckpoint(PushOpts)
 	if err != nil {
@@ -158,4 +189,63 @@ func TryMigrate(mOpts MigrateOpts) error {
 	}
 	logrus.Warn("PushCheckpoint finished")
 	return nil
+}
+
+func parseContainer(cJSON ctypes.ContainerJSON, address types.Address) (types.CreateReqOpts, error) {
+	// get image name of the container to be migrated
+	imageName := cJSON.Config.Image
+
+	// 1 get container's cmd in source node
+	var cmdStr string
+	if cJSON.Config.Cmd != nil {
+		cmd, err := json.Marshal(cJSON.Config.Cmd)
+		if err != nil {
+			return types.CreateReqOpts{}, err
+		}
+		cmdStr = string(cmd)
+		logrus.WithFields(logrus.Fields{
+			"cmd": cmdStr,
+		}).Debug("command of docker")
+	}
+
+	// 2 get container's port map in source node
+	var portBindingsStr string
+	portBindings := cJSON.HostConfig.PortBindings
+	if portBindings != nil {
+		pbJSON, err := json.Marshal(portBindings)
+		if err != nil {
+			return types.CreateReqOpts{}, err
+		}
+		portBindingsStr = string(pbJSON)
+		logrus.WithFields(logrus.Fields{
+			"PortBindings": portBindingsStr,
+		}).Debug("PortBindings")
+	}
+
+	var ExposedPortsStr string
+	exposedPorts := cJSON.Config.ExposedPorts
+	if exposedPorts != nil {
+		epJSON, err := json.Marshal(exposedPorts)
+		if err != nil {
+			return types.CreateReqOpts{}, err
+		}
+		ExposedPortsStr = string(epJSON)
+		logrus.WithFields(logrus.Fields{
+			"ExposedPorts": ExposedPortsStr,
+		}).Debug("ExposedPorts")
+	}
+
+	createOptions := types.CreateReqOpts{
+		CreateOpts: types.CreateOpts{
+			ContainerName: "", // empty string means a random name
+			ImageName:     imageName,
+			HostPort:      "", // empty string
+			ContainerPort: "", // empty string
+			PortBindings:  portBindingsStr,
+			ExposedPorts:  ExposedPortsStr,
+			Cmd:           cmdStr,
+		},
+		Address: address,
+	}
+	return createOptions, nil
 }

@@ -10,10 +10,9 @@ import (
 	"net/http"
 )
 
-// ServiceAdd add a redis service
+// ServiceAdd add a container to service
 func ServiceAdd(c *gin.Context) {
 	ServiceID := c.PostForm("ServiceID")
-	ProxyServiceID := c.PostForm("ProxyServiceID")
 	// choose a service port
 	servicePort, err := utils.GetRandomPort()
 	if err != nil {
@@ -33,13 +32,12 @@ func ServiceAdd(c *gin.Context) {
 	}
 
 	sOpts := svc.ServiceOpts{
-		ID:             ServiceID,
-		ProxyServiceID: ProxyServiceID,
-		ServicePort:    servicePort,
-		Container:      containerID,
+		CID:  containerID,
+		SID:  ServiceID,
+		Port: servicePort,
 	}
 
-	scheduler.Default().AddService(scheduler.NewService(sOpts))
+	scheduler.Default().AddContainerServ(scheduler.NewContainerServ(sOpts))
 
 	c.JSON(http.StatusOK, gin.H{"result": "success"})
 }

@@ -1,14 +1,14 @@
 package scheduler
 
 import (
-	"github.com/yufeifly/migrator/cusErr"
+	"github.com/yufeifly/migrator/cuserr"
 	"sync"
 )
 
 var DefaultScheduler *Scheduler
 
-// InitScheduler ...
-func InitScheduler() {
+// Init ...
+func Init() {
 	DefaultScheduler = NewScheduler()
 }
 
@@ -25,16 +25,17 @@ func Default() *Scheduler {
 	return DefaultScheduler
 }
 
-func (s *Scheduler) AddService(service *Service) {
-	s.Map.Store(service.ID, service)
+func (s *Scheduler) AddContainerServ(containerServ *ContainerServ) {
+	s.Map.Store(containerServ.CID, containerServ)
 }
 
-func (s *Scheduler) GetService(serviceID string) (*Service, error) {
-	serviceP, ok := s.Map.Load(serviceID)
+// GetContainerServ get container service by container id
+func (s *Scheduler) GetContainerServ(cID string) (*ContainerServ, error) {
+	cService, ok := s.Map.Load(cID)
 	if !ok {
-		return nil, cusErr.ErrServiceNotFound
+		return nil, cuserr.ErrContainerServiceNotFound
 	}
-	service, _ := serviceP.(*Service)
+	service, _ := cService.(*ContainerServ)
 	return service, nil
 }
 

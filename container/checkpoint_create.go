@@ -1,25 +1,20 @@
 package container
 
 import (
-	"github.com/docker/docker/api/types"
+	ctypes "github.com/docker/docker/api/types"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/utils"
 	"os"
 )
 
-type CheckpointReqOpts struct {
-	Container     string
-	CheckPointID  string
-	CheckPointDir string
-}
-
 //CreateCheckpoint create a checkpoint for a container
-func CreateCheckpoint(checkpointOpts CheckpointReqOpts) error {
+func CreateCheckpoint(checkpointOpts types.CheckpointReqOpts) error {
 	header := "container.CreateCheckpoint"
-	chOpts := types.CheckpointCreateOptions{
+	chOpts := ctypes.CheckpointCreateOptions{
 		CheckpointID:  checkpointOpts.CheckPointID,
 		CheckpointDir: checkpointOpts.CheckPointDir,
-		Exit:          true, // todo this should be set by user
+		Exit:          true,
 	}
 
 	// delete the checkpoint dir if it exist

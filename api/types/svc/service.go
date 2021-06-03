@@ -1,8 +1,7 @@
 package svc
 
 type ServiceOpts struct {
-	ID             string // service id
-	ProxyServiceID string
-	ServicePort    string
-	Container      string
+	CID  string // container id
+	SID  string // service id
+	Port string // exposed port
 }

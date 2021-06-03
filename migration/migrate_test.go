@@ -8,8 +8,8 @@ import (
 
 func TestTryMigrate(t *testing.T) {
 	migrateOpts := MigrateOpts{
-		//Container:     "9f42f4547a45", // to identify the container in source node
-		ServiceID:     "",
+		CID:           "9f42f4547a45", // to identify the container in source node
+		SID:           "",
 		CheckpointID:  "cp-redis",
 		CheckpointDir: "/tmp",
 		Address: types.Address{
