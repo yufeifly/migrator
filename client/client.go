@@ -9,7 +9,7 @@ import (
 
 type APIClient interface {
 	SendContainerCreate(options types.CreateReqOpts) ([]byte, error)
-	ConsumedAdder(proxyService string) error
+	ConsumedAdder(cid string) error
 	SendLog(logWithID log.LogWithCID) error
 }
 

@@ -56,9 +56,9 @@ func MigrateOneWithLogging(options MigrateOpts) error {
 
 	// write log files to dst
 	// when dst starts, open redis connection
-	// dst consume logs in the meantime
-	// wait until all log files are consumed(no whole log file)
-	ticker := time.NewTicker(1 * time.Microsecond)
+	// dst node consumes logs in the meantime
+	// wait until all logs are consumed(no whole log file)
+	ticker := time.NewTicker(100 * time.Microsecond)
 FOR:
 	for {
 		select {
@@ -78,7 +78,7 @@ FOR:
 		case log := <-cServ.Logger().LogBuffer():
 			err := cServ.SendLog(log, options.Address, false)
 			if err != nil {
-				logrus.Errorf("scheduler.LogDataInJSON SendLog failed, err: %v", err)
+				logrus.Errorf("cServ.SendLog failed, err: %v", err)
 				return err
 			}
 		}
