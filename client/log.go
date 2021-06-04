@@ -7,10 +7,10 @@ import (
 	"github.com/yufeifly/migrator/api/types/log"
 )
 
-// SendLog send log to dst
-func (cli *client) SendLog(logWithID log.LogWithCID) error {
-	logrus.Debugf("data to send: %v", logWithID.Log)
-	dataJSON, err := json.Marshal(logWithID)
+// SendLog send a log to dst,
+func (cli *client) SendLog(logWithCID log.LogWithCID) error {
+	logrus.Debugf("data to send: %v", logWithCID.Log)
+	dataJSON, err := json.Marshal(logWithCID)
 	if err != nil {
 		logrus.Errorf("client.SendLog Marshal failed, err :%v", err)
 		return err
@@ -20,7 +20,6 @@ func (cli *client) SendLog(logWithID log.LogWithCID) error {
 		JSON: dataJSON,
 	}
 
-	//url := "http://127.0.0.1:6789/logger"
 	//url := "http://" + cli.Target.IP + ":" + cli.Target.Port + "/logger"
 	url := cli.getAPIPath("/logger")
 	resp, err := grequests.Post(url, ro)

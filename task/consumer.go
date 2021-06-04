@@ -11,17 +11,13 @@ import (
 var DefaultConsumer *Consumer
 
 type Consumer struct {
-	ServicePort string
 }
 
 func NewConsumer() *Consumer {
-	return &Consumer{
-		ServicePort: "6379",
-	}
+	return &Consumer{}
 }
 
 // Consume consume a log in task queue
-// cid is the container id of src node
 func (c *Consumer) Consume(cidDst, cidSrc string, node cluster.Node) error {
 
 	cli := client.NewClient(node.Address)
@@ -34,12 +30,8 @@ func (c *Consumer) Consume(cidDst, cidSrc string, node cluster.Node) error {
 		}
 		time.Sleep(time.Millisecond)
 	}
-
 	// consume logs
 	for {
-		logrus.Debug("tick")
-
-		// get logs from the corresponding log queue
 		select {
 		case log := <-t.LogC:
 			if len(log.GetLogQueue()) > 0 {

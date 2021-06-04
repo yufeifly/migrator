@@ -25,6 +25,7 @@ func InitRoutes(r *gin.Engine) {
 
 	// logger
 	r.POST("/logger", handlers.ReceiveLog)
+	r.POST("/log/consume", handlers.LogConsumedAdder)
 
 	// service
 	r.POST("/service/add", handlers.ServiceAdd)

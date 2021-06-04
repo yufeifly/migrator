@@ -29,8 +29,8 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	sID := c.PostForm("ServiceID")
 	servicePort := c.PostForm("ServicePort")
 
-	// checkpoint path
-	cpPath := cpDir + "/" + cpID // example: /tmp/cp1
+	// checkpoint path, example: /tmp/cp1
+	cpPath := cpDir + "/" + cpID
 	logrus.WithFields(logrus.Fields{
 		"checkpoint path": cpPath,
 		"checkpointID":    cpID,
@@ -87,23 +87,22 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 		logrus.Errorf("%s, start container err: %v", header, err)
 	}
 
-	// inform proxy it has started. request: proxy -> src -> dst, so the respond: dst -> src -> proxy
+	// inform src node that it has started
 	c.JSON(http.StatusOK, gin.H{"result": "success"})
 
 	// register a redis service
-	service := scheduler.NewContainerServ(svc.ServiceOpts{
+	containerServ := scheduler.NewContainerServ(svc.ServiceOpts{
 		CID:  cIDDst,
 		SID:  sID,
 		Port: servicePort,
 	})
-	scheduler.DefaultScheduler.AddContainerServ(service)
-	logrus.Infof("%s, AddService finished, new service: %v", header, service)
+	scheduler.Default().AddContainerServ(containerServ)
+	logrus.Infof("%s, AddService finished, new service: %v", header, containerServ)
 
 	// consume logs
-	// todo but which log belongs to it?
 	logrus.Warn("going to consume logs")
 	srcNode := cluster.Node{
-		types.Address{
+		Address: types.Address{
 			IP:   c.ClientIP(),
 			Port: "6789",
 		},
