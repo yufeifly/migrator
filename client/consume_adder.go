@@ -5,10 +5,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ConsumeAdder tell the proxy that I(dst) has consumed a log
-func (cli *client) ConsumedAdder(proxyService string) error {
+// ConsumeAdder tell the src node that I(dst) have consumed a log
+func (cli *client) ConsumedAdder(cid string) error {
 	data := make(map[string]string)
-	data["ProxyServiceID"] = proxyService
+	data["ContainerID"] = cid
 	ro := &grequests.RequestOptions{
 		Data: data,
 	}

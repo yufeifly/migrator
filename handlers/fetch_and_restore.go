@@ -103,7 +103,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	// todo but which log belongs to it?
 	logrus.Warn("going to consume logs")
 	srcNode := cluster.Node{
-		types.Address{
+		Address: types.Address{
 			IP:   c.ClientIP(),
 			Port: "6789",
 		},

@@ -21,7 +21,6 @@ func NewConsumer() *Consumer {
 }
 
 // Consume consume a log in task queue
-// cid is the container id of src node
 func (c *Consumer) Consume(cidDst, cidSrc string, node cluster.Node) error {
 
 	cli := client.NewClient(node.Address)
@@ -37,8 +36,6 @@ func (c *Consumer) Consume(cidDst, cidSrc string, node cluster.Node) error {
 
 	// consume logs
 	for {
-		logrus.Debug("tick")
-
 		// get logs from the corresponding log queue
 		select {
 		case log := <-t.LogC:
