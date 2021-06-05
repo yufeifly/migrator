@@ -9,6 +9,7 @@ import (
 	"github.com/yufeifly/migrator/api/types/svc"
 	"github.com/yufeifly/migrator/client"
 	"github.com/yufeifly/migrator/ticket"
+	"sync/atomic"
 )
 
 type ContainerServ struct {
@@ -55,18 +56,12 @@ func RegisterServices() {
 	}
 }
 
-// LockAndGetSentConsumed return sent and consumed
-func (s *ContainerServ) LockAndGetSentConsumed() (int, int) {
-	s.logger.Lock()
-	defer s.logger.Unlock()
-	return s.logger.Sent, s.logger.Consumed
-}
-
 // LoggingFinished check if the logging process finished
 func (s *ContainerServ) LoggingFinished() bool {
 	s.logger.RLock()
-	defer s.logger.RUnlock()
-	sent, consumed := s.logger.Sent, s.logger.Consumed
+	sent := atomic.LoadInt32(&s.logger.Sent)
+	consumed := atomic.LoadInt32(&s.logger.Consumed)
+	s.logger.RUnlock()
 	if sent > 0 && sent-consumed < 1 {
 		return true
 	}
@@ -74,10 +69,9 @@ func (s *ContainerServ) LoggingFinished() bool {
 }
 
 // LogSent get the number of logs already sent
-func (s *ContainerServ) LogSent() int {
-	s.logger.RLock()
-	defer s.logger.RUnlock()
-	return s.logger.Sent
+func (s *ContainerServ) LogSent() int32 {
+	sent := atomic.LoadInt32(&s.logger.Sent)
+	return sent
 }
 
 func (s *ContainerServ) SendLog(l log.Log, target types.Address, last bool) error {
@@ -93,17 +87,13 @@ func (s *ContainerServ) SendLog(l log.Log, target types.Address, last bool) erro
 	if err != nil {
 		return err
 	}
-	s.logger.Lock()
-	s.logger.Sent++
-	s.logger.Unlock()
+	atomic.AddInt32(&s.logger.Sent, 1)
 	return nil
 }
 
 // ConsumedAdder ...
 func (s *ContainerServ) ConsumedAdder() {
-	s.logger.Lock()
-	s.logger.Consumed++
-	s.logger.Unlock()
+	atomic.AddInt32(&s.logger.Consumed, 1)
 }
 
 // Ticket get ticket interface

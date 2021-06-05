@@ -11,8 +11,8 @@ const capacity = 10
 type Logger struct {
 	Count        int
 	Capacity     int
-	Sent         int
-	Consumed     int
+	Sent         int32
+	Consumed     int32
 	sync.RWMutex // protect the log
 	log.Log
 	logBufferC chan log.Log

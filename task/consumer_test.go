@@ -38,7 +38,7 @@ func TestConsumer_Consume(t *testing.T) {
 	Default().GetTask(logWithCID2.CID).Push(logWithCID2.Log)
 	// consume the log
 	consumer := NewConsumer()
-	err := consumer.Consume("s1.c2", "s1.c1", cluster.Node{Address: types.Address{IP: "127.0.0.1", Port: "6789"}})
+	err := consumer.Consume("s1.c1", cluster.Node{Address: types.Address{IP: "127.0.0.1", Port: "6789"}})
 	if err != nil {
 		t.Errorf("failed: %v\n", err)
 	} else {
