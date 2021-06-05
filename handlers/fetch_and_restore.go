@@ -25,7 +25,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
 	//cIDDst := c.PostForm("ContainerIDDest")
-	cID := c.PostForm("ContainerIDSource")
+	cID := c.PostForm("ContainerID")
 	sID := c.PostForm("ServiceID")
 	servicePort := c.PostForm("ServicePort")
 
