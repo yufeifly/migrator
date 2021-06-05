@@ -6,9 +6,14 @@ import (
 	"github.com/yufeifly/migrator/client"
 )
 
+// TestMigration, make sure that the src node has the running containers and
+// the dst node doesn't have corresponding containers(even created ones).
 func TestMigration() {
 	options := types.MigrateOpts{
-		Address:       types.Address{},
+		Address: types.Address{
+			IP:   "192.168.134.135",
+			Port: "6789",
+		},
 		CID:           "s1.c1",
 		SID:           "s1",
 		CheckpointID:  "cp-redis",

@@ -93,6 +93,9 @@ func (s *ContainerServ) SendLog(l log.Log, target types.Address, last bool) erro
 	if err != nil {
 		return err
 	}
+	s.logger.Lock()
+	s.logger.Sent++
+	s.logger.Unlock()
 	return nil
 }
 
@@ -121,7 +124,6 @@ func (s *ContainerServ) LogRecord(key, val string) error {
 
 	if s.logger.Count == s.logger.Capacity {
 		s.logger.LogBuffer() <- s.logger.Log
-		s.logger.Sent++
 		s.logger.ClearQueue()
 		s.logger.Count = 0
 	}

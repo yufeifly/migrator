@@ -9,11 +9,11 @@ const capacity = 10
 
 // Logger ...
 type Logger struct {
-	Count    int // current log entry count
-	Capacity int // size of a log page
-	Sent     int
-	Consumed int
-	sync.RWMutex
+	Count        int
+	Capacity     int
+	Sent         int
+	Consumed     int
+	sync.RWMutex // protect the log
 	log.Log
 	logBufferC chan log.Log
 }
