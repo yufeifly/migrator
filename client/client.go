@@ -11,6 +11,7 @@ type APIClient interface {
 	SendContainerCreate(options types.CreateReqOpts) ([]byte, error)
 	ConsumedAdder(cid string) error
 	SendLog(logWithID log.LogWithCID) error
+	SendMigrate(options types.MigrateOpts) error
 }
 
 type client struct {

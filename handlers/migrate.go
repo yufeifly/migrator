@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/yufeifly/migrator/api/types"
 	"github.com/yufeifly/migrator/migration"
 	"github.com/yufeifly/migrator/utils"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 // MigrateRedis handler of migrating redis
 func Migrate(c *gin.Context) {
 	// 获取请求参数
-	var migrateOpts migration.MigrateOpts
+	var migrateOpts types.MigrateOpts
 	if err := c.ShouldBindJSON(&migrateOpts); err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
 	}

@@ -12,17 +12,8 @@ import (
 	"github.com/yufeifly/migrator/scheduler"
 )
 
-// MigrateOpts
-type MigrateOpts struct {
-	types.Address
-	CID           string
-	SID           string
-	CheckpointID  string
-	CheckpointDir string
-}
-
 // Migrate migrate a whole service or a container
-func Migrate(mOpts MigrateOpts) error {
+func Migrate(mOpts types.MigrateOpts) error {
 	err := MigrateOneWithLogging(mOpts)
 	if err != nil {
 		return err
@@ -30,7 +21,7 @@ func Migrate(mOpts MigrateOpts) error {
 	return nil
 }
 
-func MigrateOneWithLogging(options MigrateOpts) error {
+func MigrateOneWithLogging(options types.MigrateOpts) error {
 
 	cServ, err := scheduler.Default().GetContainerServ(options.CID)
 	if err != nil {
@@ -111,7 +102,7 @@ FOR:
 }
 
 // TryMigrate migrate a container
-func TryMigrate(mOpts MigrateOpts) error {
+func TryMigrate(mOpts types.MigrateOpts) error {
 	header := "migration.TryMigrate"
 	// get params
 	CID := mOpts.CID

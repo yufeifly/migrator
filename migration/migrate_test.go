@@ -12,7 +12,7 @@ func TestMigrateOneWithLogging(t *testing.T) {
 	scheduler.Init()
 	scheduler.RegisterServices()
 	//
-	migrateOpts := MigrateOpts{
+	migrateOpts := types.MigrateOpts{
 		CID:           "s1.c1",
 		SID:           "s1",
 		CheckpointID:  "cp-redis",
