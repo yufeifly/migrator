@@ -105,7 +105,6 @@ FOR:
 	ticker.Stop()
 
 	// downtime end, unset global lock
-	logrus.Debug("migration.TryMigrateWithLogging, ticket unset")
 	cServ.Ticket().ReturnNormal()
 
 	return nil
@@ -115,31 +114,31 @@ FOR:
 func TryMigrate(mOpts MigrateOpts) error {
 	header := "migration.TryMigrate"
 	// get params
-	//CID := mOpts.CID // real service id
-	SID := mOpts.SID // proxy id
+	CID := mOpts.CID
+	SID := mOpts.SID
 	CheckpointID := mOpts.CheckpointID
 	CheckpointDir := mOpts.CheckpointDir
-	// get service
-	service, err := scheduler.Default().GetContainerServ(SID)
+	// get container service
+	containerServ, err := scheduler.Default().GetContainerServ(CID)
 	if err != nil {
-		logrus.Errorf("%s, scheduler.DefaultScheduler.GetService err: %v", header, err)
+		logrus.Errorf("%s, scheduler.DefaultScheduler.GetcontainerServ err: %v", header, err)
 		return err
 	}
 	// get all infos of a container
-	cJSON, err := container.Inspect(service.CID)
+	cJSON, err := container.Inspect(containerServ.CID)
 	if err != nil {
 		logrus.Errorf("%s, container.Inspect err: %v", header, err)
 		return err
 	}
 
-	createoptions, err := parseContainer(cJSON, mOpts.Address)
+	createOptions, err := parseContainer(cJSON, mOpts.Address)
 	if err != nil {
 		logrus.Errorf("%s, parseContainer err: %v", header, err)
 		return err
 	}
 
 	cli := client.NewClient(mOpts.Address)
-	rawResp, err := cli.SendContainerCreate(createoptions)
+	rawResp, err := cli.SendContainerCreate(createOptions)
 	if err != nil {
 		logrus.Errorf("%s, SendContainerCreate err: %v", header, err)
 		return err
@@ -151,10 +150,10 @@ func TryMigrate(mOpts MigrateOpts) error {
 		return err
 	}
 	// container id of the created container in target node
-	containerID, _ := resp["ContainerId"].(string)
-	logrus.WithFields(logrus.Fields{
-		"ContainerID": containerID,
-	}).Debug("container on dest node created")
+	//containerID, _ := resp["ContainerId"].(string)
+	//logrus.WithFields(logrus.Fields{
+	//	"ContainerID": containerID,
+	//}).Debug("container on dest node created")
 
 	// 2 create a checkpoint
 	// make the default checkpoint dir
@@ -162,7 +161,7 @@ func TryMigrate(mOpts MigrateOpts) error {
 		CheckpointDir = DefaultChkPDirPrefix + cJSON.ID
 	}
 	chOpts := types.CheckpointReqOpts{
-		Container:     service.CID,
+		Container:     containerServ.CID,
 		CheckPointID:  CheckpointID,
 		CheckPointDir: CheckpointDir,
 	}
@@ -178,9 +177,9 @@ func TryMigrate(mOpts MigrateOpts) error {
 		CheckPointID:  chOpts.CheckPointID,
 		CheckPointDir: chOpts.CheckPointDir,
 		Dest:          mOpts.Address,
-		CID:           containerID,
-		Port:          service.Port,
+		CID:           mOpts.CID,
 		SID:           SID,
+		Port:          containerServ.Port,
 	}
 	err = PushCheckpoint(PushOpts)
 	if err != nil {
@@ -222,27 +221,27 @@ func parseContainer(cJSON ctypes.ContainerJSON, address types.Address) (types.Cr
 		}).Debug("PortBindings")
 	}
 
-	var ExposedPortsStr string
+	var exposedPortsStr string
 	exposedPorts := cJSON.Config.ExposedPorts
 	if exposedPorts != nil {
 		epJSON, err := json.Marshal(exposedPorts)
 		if err != nil {
 			return types.CreateReqOpts{}, err
 		}
-		ExposedPortsStr = string(epJSON)
+		exposedPortsStr = string(epJSON)
 		logrus.WithFields(logrus.Fields{
-			"ExposedPorts": ExposedPortsStr,
+			"ExposedPorts": exposedPortsStr,
 		}).Debug("ExposedPorts")
 	}
 
 	createOptions := types.CreateReqOpts{
 		CreateOpts: types.CreateOpts{
-			ContainerName: "", // empty string means a random name
+			ContainerName: cJSON.Name, // empty string means a random name
 			ImageName:     imageName,
 			HostPort:      "", // empty string
 			ContainerPort: "", // empty string
 			PortBindings:  portBindingsStr,
-			ExposedPorts:  ExposedPortsStr,
+			ExposedPorts:  exposedPortsStr,
 			Cmd:           cmdStr,
 		},
 		Address: address,

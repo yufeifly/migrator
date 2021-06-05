@@ -24,8 +24,8 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	// get params
 	cpDir := c.PostForm("CheckPointDir")
 	cpID := c.PostForm("CheckPointID")
-	cIDDst := c.PostForm("ContainerIDDest")
-	cIDSrc := c.PostForm("ContainerIDSource")
+	//cIDDst := c.PostForm("ContainerIDDest")
+	cID := c.PostForm("ContainerIDSource")
 	sID := c.PostForm("ServiceID")
 	servicePort := c.PostForm("ServicePort")
 
@@ -72,10 +72,10 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 
 	// start the container
 	// 1 todo check if container created
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 	// 2 start the container
 	startOpts := container.StartOpts{
-		ContainerID: cIDDst,
+		ContainerID: cID,
 		CStartOpts: ctypes.ContainerStartOptions{
 			CheckpointID:  cpID,
 			CheckpointDir: cpDir,
@@ -92,7 +92,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 
 	// register a redis service
 	containerServ := scheduler.NewContainerServ(svc.ServiceOpts{
-		CID:  cIDDst,
+		CID:  cID,
 		SID:  sID,
 		Port: servicePort,
 	})
@@ -109,7 +109,7 @@ func FetchCheckpointAndRestore(c *gin.Context) {
 	}
 	go func(srcNode cluster.Node) {
 		consumer := task.NewConsumer()
-		err := consumer.Consume(cIDDst, cIDSrc, srcNode)
+		err := consumer.Consume(cID, srcNode)
 		if err != nil {
 			logrus.Panic(err)
 		}

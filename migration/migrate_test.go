@@ -3,24 +3,27 @@ package migration
 import (
 	"fmt"
 	"github.com/yufeifly/migrator/api/types"
+	"github.com/yufeifly/migrator/scheduler"
 	"testing"
 )
 
-func TestTryMigrate(t *testing.T) {
+func TestMigrateOneWithLogging(t *testing.T) {
+	//
+	scheduler.Init()
+	scheduler.RegisterServices()
+	//
 	migrateOpts := MigrateOpts{
-		CID:           "9f42f4547a45", // to identify the container in source node
-		SID:           "",
+		CID:           "s1.c1",
+		SID:           "s1",
 		CheckpointID:  "cp-redis",
 		CheckpointDir: "/tmp",
 		Address: types.Address{
-			IP:   "127.0.0.1",
+			IP:   "192.168.134.135",
 			Port: "6789",
 		},
 	}
-	err := TryMigrate(migrateOpts)
+	err := MigrateOneWithLogging(migrateOpts)
 	if err != nil {
 		fmt.Printf("TestTryMigrate err: %v\n", err)
-	} else {
-		fmt.Printf("TestTryMigrate pass\n")
 	}
 }

@@ -62,6 +62,7 @@ func (s *ContainerServ) LockAndGetSentConsumed() (int, int) {
 	return s.logger.Sent, s.logger.Consumed
 }
 
+// LoggingFinished check if the logging process finished
 func (s *ContainerServ) LoggingFinished() bool {
 	s.logger.RLock()
 	defer s.logger.RUnlock()
