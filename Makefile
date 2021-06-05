@@ -12,7 +12,7 @@ run:
 	$(GORUN) main.go
 
 ## run2: DST=1 sudo -E go run main.go
-run2:
+rundst:
 	DST=1 $(GORUN) main.go
 
 ## debug: DEBUG=1 sudo -E go run main.go
@@ -20,7 +20,7 @@ debug:
 	DEBUG=1 $(GORUN) main.go
 
 ## debug2: DEBUG=1 DST=1 sudo -E go run main.go
-debug2:
+debugdst:
 	DEBUG=1 DST=1 $(GORUN) main.go
 
 ## build: Compile the binary.
