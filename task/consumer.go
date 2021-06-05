@@ -42,16 +42,16 @@ func (c *Consumer) Consume(cid string, node cluster.Node) error {
 					}
 				}
 			}
-			// stop this goroutine if it is the last task
-			if log.GetLastFlag() {
-				logrus.Warn("the last log consumed")
-				return nil
-			}
 			logrus.Infof("consumed a log, send msg to src")
 			err := cli.ConsumedAdder(cid)
 			if err != nil {
 				logrus.Errorf("cli.consumed failed, err: %v", err)
 				return err
+			}
+			// stop this goroutine if it is the last task
+			if log.GetLastFlag() {
+				logrus.Warn("the last log consumed")
+				return nil
 			}
 		default:
 			time.Sleep(1 * time.Millisecond)
