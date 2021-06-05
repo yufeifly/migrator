@@ -23,3 +23,12 @@ type CheckpointReqOpts struct {
 	CheckPointID  string
 	CheckPointDir string
 }
+
+// MigrateOpts
+type MigrateOpts struct {
+	Address
+	CID           string
+	SID           string
+	CheckpointID  string
+	CheckpointDir string
+}
