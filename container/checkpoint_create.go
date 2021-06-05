@@ -14,7 +14,7 @@ func CreateCheckpoint(checkpointOpts types.CheckpointReqOpts) error {
 	chOpts := ctypes.CheckpointCreateOptions{
 		CheckpointID:  checkpointOpts.CheckPointID,
 		CheckpointDir: checkpointOpts.CheckPointDir,
-		Exit:          true,
+		Exit:          false,
 	}
 
 	// delete the checkpoint dir if it exist
