@@ -140,13 +140,7 @@ func TryMigrate(mOpts types.MigrateOpts) error {
 		logrus.Errorf("%s, Unmarshal response err: %v", header, err)
 		return err
 	}
-	// container id of the created container in target node
-	//containerID, _ := resp["ContainerId"].(string)
-	//logrus.WithFields(logrus.Fields{
-	//	"ContainerID": containerID,
-	//}).Debug("container on dest node created")
 
-	// 2 create a checkpoint
 	// make the default checkpoint dir
 	if CheckpointDir == "" {
 		CheckpointDir = DefaultChkPDirPrefix + cJSON.ID
@@ -163,7 +157,7 @@ func TryMigrate(mOpts types.MigrateOpts) error {
 		return err
 	}
 
-	// 3 push checkpoint to destination node
+	// push checkpoint to destination node
 	PushOpts := PushOpts{
 		CheckPointID:  chOpts.CheckPointID,
 		CheckPointDir: chOpts.CheckPointDir,

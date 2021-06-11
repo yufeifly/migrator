@@ -26,9 +26,9 @@ type CheckpointReqOpts struct {
 
 // MigrateOpts
 type MigrateOpts struct {
-	Address
-	CID           string
-	SID           string
-	CheckpointID  string
-	CheckpointDir string
+	Address       `json:"target"`
+	SID           string `json:"sid"`
+	CID           string `json:"c_name"`
+	CheckpointID  string `json:"checkpoint_id"`
+	CheckpointDir string `json:"checkpoint_dir"`
 }
